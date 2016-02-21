@@ -1,0 +1,5 @@
+rootProject.name = 'gsonvalue-project'
+include ':gsonvalue'
+include 'gsonvalue-processor'
+include 'gsonvalue-annotations'
+
