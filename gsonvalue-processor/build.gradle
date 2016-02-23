@@ -1,11 +1,7 @@
 import javax.tools.ToolProvider
 
-apply plugin: 'java'
 apply plugin: 'maven'
-
-repositories {
-    mavenCentral()
-}
+apply plugin: 'signing'
 
 dependencies {
     compile project(':gsonvalue-annotations')
