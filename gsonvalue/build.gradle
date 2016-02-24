@@ -2,9 +2,6 @@ plugins {
     id "net.ltgt.apt" version "0.5"
 }
 
-apply plugin: 'maven'
-apply plugin: 'signing'
-
 dependencies {
     compile project(':gsonvalue-annotations')
     compile 'com.google.code.gson:gson:2.6.1'

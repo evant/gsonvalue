@@ -1,8 +1,5 @@
 import javax.tools.ToolProvider
 
-apply plugin: 'maven'
-apply plugin: 'signing'
-
 dependencies {
     compile project(':gsonvalue-annotations')
     compile 'com.squareup:javapoet:1.5.1'

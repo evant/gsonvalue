@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd" xmlns="http://maven.apache.org/POM/4.0.0"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+    <modelVersion>4.0.0</modelVersion>
+    <artifactId>gsonvalue-annotations</artifactId>
+    <parent>
+        <groupId>me.tatarka.gsonvalue</groupId>
+        <artifactId>gsonvalue-parent</artifactId>
+        <version>0.1</version>
+        <relativePath>../pom.xml</relativePath>
+    </parent>
+    <name>gsonvalue-annotations</name>
+    <description>Compile-time generation of gson TypeAdapters to preserve class encapsulation.</description>
+    <url>https://github.com/evant/gsonvalue</url>
+    <licenses>
+        <license>
+            <name>The Apache Software License, Version 2.0</name>
+            <url>http://www.apache.org/licenses/LICENSE-2.0.txt</url>
+            <distribution>repo</distribution>
+        </license>
+    </licenses>
+    <developers>
+        <developer>
+            <id>evant</id>
+            <name>Evan Tatarka</name>
+        </developer>
+    </developers>
+    <scm>
+        <connection>scm:git:git@github.com:evant/gsonvalue.git</connection>
+        <developerConnection>scm:git:git@github.com:evant/gsonvalue.git</developerConnection>
+        <url>git@github.com:evant/gsonvalue.git</url>
+    </scm>
+</project>
