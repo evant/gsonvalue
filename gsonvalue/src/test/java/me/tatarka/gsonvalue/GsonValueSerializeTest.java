@@ -95,4 +95,12 @@ public class GsonValueSerializeTest {
 
         assertEquals("{\"arg\":1}", json);
     }
+
+    @Test
+    public void serializeSubclass() {
+        Subclass.Child subclass = new Subclass.Child(1, 2, 3);
+        String json = gson.toJson(subclass);
+
+        assertEquals("{\"arg1\":1,\"arg2\":2,\"arg3\":3}", json);
+    }
 }

@@ -111,15 +111,7 @@ public class GsonValueProcessor extends AbstractProcessor {
             }
         }
 
-        // getters
-        for (ExecutableElement method : ElementFilter.methodsIn(classElement.getEnclosedElements())) {
-            names.addGetter(method);
-        }
-
-        // fields
-        for (VariableElement field : ElementFilter.fieldsIn(classElement.getEnclosedElements())) {
-            names.addField(field);
-        }
+        addFieldsAndGetters(names, classElement);
 
         try {
             names.finish();
@@ -263,6 +255,26 @@ public class GsonValueProcessor extends AbstractProcessor {
                     throw e;
                 }
             }
+        }
+    }
+
+    private void addFieldsAndGetters(Names names, TypeElement classElement) {
+        // getters
+        for (ExecutableElement method : ElementFilter.methodsIn(classElement.getEnclosedElements())) {
+            names.addGetter(method);
+        }
+
+        // fields
+        for (VariableElement field : ElementFilter.fieldsIn(classElement.getEnclosedElements())) {
+            names.addField(field);
+        }
+
+        for (TypeMirror superInterface : classElement.getInterfaces()) {
+            addFieldsAndGetters(names, (TypeElement) typeUtils.asElement(superInterface));
+        }
+
+        if (classElement.getSuperclass().getKind() != TypeKind.NONE) {
+            addFieldsAndGetters(names, (TypeElement) typeUtils.asElement(classElement.getSuperclass()));
         }
     }
 
