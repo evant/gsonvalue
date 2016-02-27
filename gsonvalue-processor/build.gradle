@@ -1,14 +1,6 @@
-import javax.tools.ToolProvider
-
 dependencies {
     compile project(':gsonvalue-annotations')
     compile 'com.squareup:javapoet:1.5.1'
-
-    testCompile project(':gsonvalue')
-    testCompile 'com.google.code.gson:gson:2.6.1'
-    testCompile 'junit:junit:4.11'
-    testCompile 'com.google.testing.compile:compile-testing:0.8'
-    testCompile files((ToolProvider.systemToolClassLoader as URLClassLoader).URLs)
 }
 
 apply from: '../publish.gradle'

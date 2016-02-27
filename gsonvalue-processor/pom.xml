@@ -6,7 +6,7 @@
     <parent>
         <groupId>me.tatarka.gsonvalue</groupId>
         <artifactId>gsonvalue-parent</artifactId>
-        <version>0.1</version>
+        <version>0.2</version>
         <relativePath>../pom.xml</relativePath>
     </parent>
     <name>gsonvalue-processor</name>
@@ -32,12 +32,6 @@
     </scm>
     <dependencies>
         <dependency>
-            <groupId>junit</groupId>
-            <artifactId>junit</artifactId>
-            <version>4.11</version>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
             <groupId>me.tatarka.gsonvalue</groupId>
             <artifactId>gsonvalue-annotations</artifactId>
             <version>${project.parent.version}</version>
@@ -48,18 +42,6 @@
             <artifactId>javapoet</artifactId>
             <version>1.5.1</version>
             <scope>compile</scope>
-        </dependency>
-        <dependency>
-            <groupId>com.google.testing.compile</groupId>
-            <artifactId>compile-testing</artifactId>
-            <version>0.8</version>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>com.google.code.gson</groupId>
-            <artifactId>gson</artifactId>
-            <version>2.3.1</version>
-            <scope>test</scope>
         </dependency>
     </dependencies>
 </project>

@@ -4,7 +4,7 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>me.tatarka.gsonvalue</groupId>
     <artifactId>gsonvalue-parent</artifactId>
-    <version>0.1</version>
+    <version>0.2</version>
     <name>gsonvalue-parent</name>
     <description>Compile-time generation of gson TypeAdapters to preserve class encapsulation.</description>
     <url>https://github.com/evant/gsonvalue</url>

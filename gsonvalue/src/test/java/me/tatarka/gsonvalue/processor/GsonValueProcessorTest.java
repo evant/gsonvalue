@@ -1,6 +1,7 @@
-package me.tatarka.gsonvalue;
+package me.tatarka.gsonvalue.processor;
 
 import com.google.testing.compile.JavaFileObjects;
+import me.tatarka.gsonvalue.GsonValueProcessor;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
