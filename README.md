@@ -131,7 +131,6 @@ on deserialization and the field or getter on serialization.
 
 The following features are not supported. They may be added if there is enough demand.
 
-* Inheritance, parent fields and methods are not considered.
 * `@Adapter` annotations.
 * Versioning support.
 * `@Expose` and exclusion strategies.
