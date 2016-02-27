@@ -4,6 +4,7 @@ import com.google.gson.Gson;
 import com.google.gson.TypeAdapter;
 import com.google.gson.TypeAdapterFactory;
 import com.google.gson.reflect.TypeToken;
+import me.tatarka.gsonvalue.annotations.GsonBuilder;
 import me.tatarka.gsonvalue.annotations.GsonConstructor;
 
 import java.lang.reflect.Constructor;
@@ -57,13 +58,13 @@ public class ValueTypeAdapterFactory implements TypeAdapterFactory {
             }
         }
         for (Method method : type.getMethods()) {
-            if (method.isAnnotationPresent(GsonConstructor.class) || method.isAnnotationPresent(GsonConstructor.Builder.class)) {
+            if (method.isAnnotationPresent(GsonConstructor.class) || method.isAnnotationPresent(GsonBuilder.class)) {
                 return true;
             }
         }
         for (Class<?> classes : type.getClasses()) {
             for (Constructor<?> constructor : classes.getConstructors()) {
-                if (constructor.isAnnotationPresent(GsonConstructor.Builder.class)) {
+                if (constructor.isAnnotationPresent(GsonBuilder.class)) {
                     return true;
                 }
             }

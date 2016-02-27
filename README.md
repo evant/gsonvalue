@@ -79,7 +79,7 @@ apply if all getters follow that style.
 ### Builders
 
 Alternatively, you can create an inner builder class. Annotate either the builder's constructor or
-factory method that returns the builder with `@GsonConstructor.Builder`. Currently, _only_ inner
+factory method that returns the builder with `@GsonBuilder`. Currently, _only_ inner
 classes are supported.
 
 ```java
@@ -87,7 +87,7 @@ import me.tatarka.gsonvalue.annotations.GsonConstructor;
 
 public class Foo {
     public static class Builder {
-        @GsonConstructor.Builder
+        @GsonBuilder
         public Builder(int arg1) {
             ...
         }
@@ -103,7 +103,7 @@ public class Foo {
 }
 
 public class Bar {
-    @GsonConstructor.Builder
+    @GsonBuilder
     public static Builder builder() {
         ...
     }

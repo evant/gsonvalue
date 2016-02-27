@@ -7,7 +7,5 @@ import java.lang.annotation.Target;
 
 @Target({ElementType.CONSTRUCTOR, ElementType.METHOD})
 @Retention(RetentionPolicy.RUNTIME)
-public @interface GsonConstructor {
-
+public @interface GsonBuilder {
 }
-
