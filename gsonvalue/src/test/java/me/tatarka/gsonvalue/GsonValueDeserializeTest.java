@@ -2,6 +2,7 @@ package me.tatarka.gsonvalue;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
+import com.google.gson.reflect.TypeToken;
 import me.tatarka.gsonvalue.model.deserialize.*;
 import org.junit.Before;
 import org.junit.Test;
@@ -10,9 +11,7 @@ import org.junit.runners.JUnit4;
 
 import java.util.Arrays;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.*;
 
 @RunWith(JUnit4.class)
 public class GsonValueDeserializeTest {
@@ -101,5 +100,35 @@ public class GsonValueDeserializeTest {
 
         assertNotNull(complexArg);
         assertEquals(Arrays.asList("one", "two"), complexArg.args);
+    }
+
+    @Test
+    public void deserializeGenericConstructorArg() {
+        GenericConstructorArg<Integer> constructorArg = gson.fromJson("{\"arg\":1}", new TypeToken<GenericConstructorArg<Integer>>() {
+        }.getType());
+
+        assertNotNull(constructorArg);
+        assertEquals(Integer.valueOf(1), constructorArg.arg);
+        assertTrue(constructorArg.constructorCalled);
+    }
+
+    @Test
+    public void deserializeComplexGenericConstructorArg() {
+        ComplexGenericConstructorArg<Integer> constructorArg = gson.fromJson("{\"arg\":[1,2]}", new TypeToken<ComplexGenericConstructorArg<Integer>>() {
+        }.getType());
+
+        assertNotNull(constructorArg);
+        assertEquals(Arrays.asList(1, 2), constructorArg.arg);
+        assertTrue(constructorArg.constructorCalled);
+    }
+
+    @Test
+    public void deserializeGenericMethodArg() {
+        GenericMethodArg<Integer> constructorArg = gson.fromJson("{\"arg\":1}", new TypeToken<GenericMethodArg<Integer>>() {
+        }.getType());
+
+        assertNotNull(constructorArg);
+        assertEquals(Integer.valueOf(1), constructorArg.arg);
+        assertTrue(constructorArg.factoryMethodCalled);
     }
 }
