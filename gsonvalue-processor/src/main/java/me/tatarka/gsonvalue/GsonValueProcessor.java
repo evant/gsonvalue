@@ -1,6 +1,7 @@
 package me.tatarka.gsonvalue;
 
 import com.squareup.javapoet.*;
+import me.tatarka.gsonvalue.annotations.GsonBuilder;
 import me.tatarka.gsonvalue.annotations.GsonConstructor;
 
 import javax.annotation.processing.*;
@@ -65,7 +66,7 @@ public class GsonValueProcessor extends AbstractProcessor {
         TypeElement classElement = (TypeElement) element.getEnclosingElement();
 
         boolean isConstructor = element.getKind() == ElementKind.CONSTRUCTOR;
-        boolean isBuilder = element.getAnnotation(GsonConstructor.Builder.class) != null;
+        boolean isBuilder = element.getAnnotation(GsonBuilder.class) != null;
 
         if (isConstructor && isBuilder) {
             // Annotation is on builder class, get real class
@@ -282,7 +283,7 @@ public class GsonValueProcessor extends AbstractProcessor {
     public Set<String> getSupportedAnnotationTypes() {
         return new LinkedHashSet<String>(Arrays.asList(
                 GsonConstructor.class.getCanonicalName(),
-                GsonConstructor.Builder.class.getCanonicalName()
+                GsonBuilder.class.getCanonicalName()
         ));
     }
 

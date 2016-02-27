@@ -181,7 +181,7 @@ public class GsonValueProcessorTest {
         ASSERT.about(javaSource()).that(JavaFileObjects.forSourceString("test.Test",
                 "package test;\n" +
                         "\n" +
-                        "import me.tatarka.gsonvalue.annotations.GsonConstructor;\n" +
+                        "import me.tatarka.gsonvalue.annotations.GsonBuilder;\n" +
                         "\n" +
                         "public class Test {\n" +
                         "    private int arg;\n" +
@@ -191,7 +191,7 @@ public class GsonValueProcessorTest {
                         "    \n" +
                         "    public static class Builder {\n" +
                         "        private int arg;\n" +
-                        "        @GsonConstructor.Builder\n" +
+                        "        @GsonBuilder\n" +
                         "        public Builder() {\n" +
                         "        }\n" +
                         "        \n" +
@@ -257,14 +257,14 @@ public class GsonValueProcessorTest {
         ASSERT.about(javaSource()).that(JavaFileObjects.forSourceString("test.Test",
                 "package test;\n" +
                         "\n" +
-                        "import me.tatarka.gsonvalue.annotations.GsonConstructor;\n" +
+                        "import me.tatarka.gsonvalue.annotations.GsonBuilder;\n" +
                         "\n" +
                         "public class Test {\n" +
                         "    private int arg;\n" +
                         "    public int arg() {\n" +
                         "        return arg;\n" +
                         "    }\n" +
-                        "    @GsonConstructor.Builder\n" +
+                        "    @GsonBuilder\n" +
                         "    public static Builder builder() {\n" +
                         "        return new Builder();\n" +
                         "    }\n" +
@@ -333,7 +333,7 @@ public class GsonValueProcessorTest {
         ASSERT.about(javaSource()).that(JavaFileObjects.forSourceString("test.Test",
                 "package test;\n" +
                         "\n" +
-                        "import me.tatarka.gsonvalue.annotations.GsonConstructor;\n" +
+                        "import me.tatarka.gsonvalue.annotations.GsonBuilder;\n" +
                         "\n" +
                         "public class Test {\n" +
                         "    private int arg;\n" +
@@ -343,7 +343,7 @@ public class GsonValueProcessorTest {
                         "    \n" +
                         "    public static class Builder {\n" +
                         "        private int arg;\n" +
-                        "        @GsonConstructor.Builder\n" +
+                        "        @GsonBuilder\n" +
                         "        public Builder(int arg) {\n" +
                         "            this.arg = arg;\n" +
                         "        }\n" +
@@ -405,7 +405,7 @@ public class GsonValueProcessorTest {
                 "package test;\n" +
                         "\n" +
                         "import com.google.gson.annotations.SerializedName;\n" +
-                        "import me.tatarka.gsonvalue.annotations.GsonConstructor;\n" +
+                        "import me.tatarka.gsonvalue.annotations.GsonBuilder;\n" +
                         "\n" +
                         "public class Test {\n" +
                         "    @SerializedName(\"named\")\n" +
@@ -413,7 +413,7 @@ public class GsonValueProcessorTest {
                         "    public int arg() {\n" +
                         "        return arg;\n" +
                         "    }\n" +
-                        "    @GsonConstructor.Builder\n" +
+                        "    @GsonBuilder\n" +
                         "    public static Builder builder(int arg) {\n" +
                         "        return new Builder()\n" +
                         "                .arg(arg);\n" +
