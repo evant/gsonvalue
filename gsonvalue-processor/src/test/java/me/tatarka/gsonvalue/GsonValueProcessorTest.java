@@ -30,14 +30,13 @@ public class GsonValueProcessorTest {
                         "\n" +
                         "import com.google.gson.Gson;\n" +
                         "import com.google.gson.TypeAdapter;\n" +
+                        "import com.google.gson.reflect.TypeToken;\n" +
                         "import com.google.gson.stream.JsonReader;\n" +
                         "import com.google.gson.stream.JsonWriter;\n" +
                         "import java.io.IOException;\n" +
                         "\n" +
                         "public class ValueTypeAdapter_Test extends TypeAdapter<Test> {\n" +
-                        "    private final Gson gson;\n" +
-                        "    public ValueTypeAdapter_Test(Gson gson) {\n" +
-                        "        this.gson = gson;\n" +
+                        "    public ValueTypeAdapter_Test(Gson gson, TypeToken<Test> typeToken) {\n" +
                         "    }\n" +
                         "    @Override\n" +
                         "    public void write(JsonWriter out, Test value) throws IOException {\n" +
@@ -78,15 +77,14 @@ public class GsonValueProcessorTest {
                         "\n" +
                         "import com.google.gson.Gson;\n" +
                         "import com.google.gson.TypeAdapter;\n" +
+                        "import com.google.gson.reflect.TypeToken;\n" +
                         "import com.google.gson.stream.JsonReader;\n" +
                         "import com.google.gson.stream.JsonWriter;\n" +
                         "import java.io.IOException;\n" +
                         "\n" +
                         "public class ValueTypeAdapter_Test extends TypeAdapter<Test> {\n" +
-                        "    private final Gson gson;\n" +
                         "    private final TypeAdapter<Integer> adapter_arg;\n" +
-                        "    public ValueTypeAdapter_Test(Gson gson) {\n" +
-                        "        this.gson = gson;\n" +
+                        "    public ValueTypeAdapter_Test(Gson gson, TypeToken<Test> typeToken) {\n" +
                         "        this.adapter_arg = gson.getAdapter(int.class);\n" +
                         "    }\n" +
                         "    @Override\n" +
@@ -140,15 +138,14 @@ public class GsonValueProcessorTest {
                         "\n" +
                         "import com.google.gson.Gson;\n" +
                         "import com.google.gson.TypeAdapter;\n" +
+                        "import com.google.gson.reflect.TypeToken;\n" +
                         "import com.google.gson.stream.JsonReader;\n" +
                         "import com.google.gson.stream.JsonWriter;\n" +
                         "import java.io.IOException;\n" +
                         "\n" +
                         "public class ValueTypeAdapter_Test extends TypeAdapter<Test> {\n" +
-                        "    private final Gson gson;\n" +
                         "    private final TypeAdapter<Integer> adapter_arg;\n" +
-                        "    public ValueTypeAdapter_Test(Gson gson) {\n" +
-                        "        this.gson = gson;\n" +
+                        "    public ValueTypeAdapter_Test(Gson gson, TypeToken<Test> typeToken) {\n" +
                         "        this.adapter_arg = gson.getAdapter(int.class);\n" +
                         "    }\n" +
                         "    @Override\n" +
@@ -214,15 +211,14 @@ public class GsonValueProcessorTest {
                         "\n" +
                         "import com.google.gson.Gson;\n" +
                         "import com.google.gson.TypeAdapter;\n" +
+                        "import com.google.gson.reflect.TypeToken;\n" +
                         "import com.google.gson.stream.JsonReader;\n" +
                         "import com.google.gson.stream.JsonWriter;\n" +
                         "import java.io.IOException;\n" +
                         "\n" +
                         "public class ValueTypeAdapter_Test extends TypeAdapter<Test> {\n" +
-                        "    private final Gson gson;\n" +
                         "    private final TypeAdapter<Integer> adapter_arg;\n" +
-                        "    public ValueTypeAdapter_Test(Gson gson) {\n" +
-                        "        this.gson = gson;\n" +
+                        "    public ValueTypeAdapter_Test(Gson gson, TypeToken<Test> typeToken) {\n" +
                         "        this.adapter_arg = gson.getAdapter(int.class);\n" +
                         "    }\n" +
                         "    @Override\n" +
@@ -291,15 +287,14 @@ public class GsonValueProcessorTest {
                         "\n" +
                         "import com.google.gson.Gson;\n" +
                         "import com.google.gson.TypeAdapter;\n" +
+                        "import com.google.gson.reflect.TypeToken;\n" +
                         "import com.google.gson.stream.JsonReader;\n" +
                         "import com.google.gson.stream.JsonWriter;\n" +
                         "import java.io.IOException;\n" +
                         "\n" +
                         "public class ValueTypeAdapter_Test extends TypeAdapter<Test> {\n" +
-                        "    private final Gson gson;\n" +
                         "    private final TypeAdapter<Integer> adapter_arg;\n" +
-                        "    public ValueTypeAdapter_Test(Gson gson) {\n" +
-                        "        this.gson = gson;\n" +
+                        "    public ValueTypeAdapter_Test(Gson gson, TypeToken<Test> typeToken) {\n" +
                         "        this.adapter_arg = gson.getAdapter(int.class);\n" +
                         "    }\n" +
                         "    @Override\n" +
@@ -362,15 +357,14 @@ public class GsonValueProcessorTest {
                         "\n" +
                         "import com.google.gson.Gson;\n" +
                         "import com.google.gson.TypeAdapter;\n" +
+                        "import com.google.gson.reflect.TypeToken;\n" +
                         "import com.google.gson.stream.JsonReader;\n" +
                         "import com.google.gson.stream.JsonWriter;\n" +
                         "import java.io.IOException;\n" +
                         "\n" +
                         "public class ValueTypeAdapter_Test extends TypeAdapter<Test> {\n" +
-                        "    private final Gson gson;\n" +
                         "    private final TypeAdapter<Integer> adapter_arg;\n" +
-                        "    public ValueTypeAdapter_Test(Gson gson) {\n" +
-                        "        this.gson = gson;\n" +
+                        "    public ValueTypeAdapter_Test(Gson gson, TypeToken<Test> typeToken) {\n" +
                         "        this.adapter_arg = gson.getAdapter(int.class);\n" +
                         "    }\n" +
                         "    @Override\n" +
@@ -441,15 +435,14 @@ public class GsonValueProcessorTest {
                         "\n" +
                         "import com.google.gson.Gson;\n" +
                         "import com.google.gson.TypeAdapter;\n" +
+                        "import com.google.gson.reflect.TypeToken;\n" +
                         "import com.google.gson.stream.JsonReader;\n" +
                         "import com.google.gson.stream.JsonWriter;\n" +
                         "import java.io.IOException;\n" +
                         "\n" +
                         "public class ValueTypeAdapter_Test extends TypeAdapter<Test> {\n" +
-                        "    private final Gson gson;\n" +
                         "    private final TypeAdapter<Integer> adapter_arg;\n" +
-                        "    public ValueTypeAdapter_Test(Gson gson) {\n" +
-                        "        this.gson = gson;\n" +
+                        "    public ValueTypeAdapter_Test(Gson gson, TypeToken<Test> typeToken) {\n" +
                         "        this.adapter_arg = gson.getAdapter(int.class);\n" +
                         "    }\n" +
                         "    @Override\n" +
@@ -479,12 +472,11 @@ public class GsonValueProcessorTest {
     }
 
     @Test
-    public void onComplexArgConstructor() {
+    public void oneComplexArgConstructor() {
         ASSERT.about(javaSource()).that(JavaFileObjects.forSourceString("test.Test",
                 "package test;\n" +
                         "\n" +
                         "import me.tatarka.gsonvalue.annotations.GsonConstructor;\n" +
-                        "\n" +
                         "import java.util.List;\n" +
                         "\n" +
                         "public class Test {\n" +
@@ -512,10 +504,8 @@ public class GsonValueProcessorTest {
                         "import java.util.List;\n" +
                         "\n" +
                         "public class ValueTypeAdapter_Test extends TypeAdapter<Test> {\n" +
-                        "    private final Gson gson;\n" +
                         "    private final TypeAdapter<List<String>> adapter_arg;\n" +
-                        "    public ValueTypeAdapter_Test(Gson gson) {\n" +
-                        "        this.gson = gson;\n" +
+                        "    public ValueTypeAdapter_Test(Gson gson, TypeToken<Test> typeToken) {\n" +
                         "        this.adapter_arg = gson.getAdapter(new TypeToken<List<String>>() {});\n" +
                         "    }\n" +
                         "    @Override\n" +
@@ -539,6 +529,131 @@ public class GsonValueProcessorTest {
                         "        }\n" +
                         "        in.endObject();\n" +
                         "        return new Test(_arg);\n" +
+                        "    }\n" +
+                        "}"));
+    }
+
+    @Test
+    public void genericConstructor() {
+        ASSERT.about(javaSource()).that(JavaFileObjects.forSourceString("test.Test",
+                "package test;\n" +
+                        "\n" +
+                        "import me.tatarka.gsonvalue.annotations.GsonConstructor;\n" +
+                        "\n" +
+                        "public class Test<T> {\n" +
+                        "    private final T arg;\n" +
+                        "    @GsonConstructor\n" +
+                        "    public Test(T arg) {\n" +
+                        "        this.arg = arg;\n" +
+                        "    }\n" +
+                        "    \n" +
+                        "    public T arg() {\n" +
+                        "        return arg;\n" +
+                        "    }\n" +
+                        "}"))
+                .processedWith(new GsonValueProcessor())
+                .compilesWithoutError()
+                .and().generatesSources(JavaFileObjects.forSourceString("test.ValueTypeAdapter_Test",
+                "package test;\n" +
+                        "\n" +
+                        "import com.google.gson.Gson;\n" +
+                        "import com.google.gson.TypeAdapter;\n" +
+                        "import com.google.gson.reflect.TypeToken;\n" +
+                        "import com.google.gson.stream.JsonReader;\n" +
+                        "import com.google.gson.stream.JsonWriter;\n" +
+                        "import java.io.IOException;\n" +
+                        "import java.lang.reflect.ParameterizedType;\n" +
+                        "\n" +
+                        "public class ValueTypeAdapter_Test<T> extends TypeAdapter<Test<T>> {\n" +
+                        "    private final TypeAdapter<T> adapter_arg;\n" +
+                        "    public ValueTypeAdapter_Test(Gson gson, TypeToken<Test<T>> typeToken) {\n" +
+                        "        this.adapter_arg = gson.getAdapter((TypeToken<T>) TypeToken.get(((ParameterizedType)typeToken.getType()).getActualTypeArguments()[0]));" +
+                        "    }\n" +
+                        "    @Override\n" +
+                        "    public void write(JsonWriter out, Test<T> value) throws IOException {\n" +
+                        "        out.beginObject();\n" +
+                        "        out.name(\"arg\");\n" +
+                        "        adapter_arg.write(out, value.arg());\n" +
+                        "        out.endObject();\n" +
+                        "    }\n" +
+                        "\n" +
+                        "    @Override\n" +
+                        "    public Test<T> read(JsonReader in) throws IOException {\n" +
+                        "        T _arg = null;\n" +
+                        "        in.beginObject();\n" +
+                        "        while (in.hasNext()) {\n" +
+                        "            switch (in.nextName()) {\n" +
+                        "                case \"arg\":\n" +
+                        "                    _arg = adapter_arg.read(in);\n" +
+                        "                    break;\n" +
+                        "            }\n" +
+                        "        }\n" +
+                        "        in.endObject();\n" +
+                        "        return new Test<T>(_arg);\n" +
+                        "    }\n" +
+                        "}"));
+    }
+
+    @Test
+    public void complexGenericConstructor() {
+        ASSERT.about(javaSource()).that(JavaFileObjects.forSourceString("test.Test",
+                "package test;\n" +
+                        "\n" +
+                        "import me.tatarka.gsonvalue.annotations.GsonConstructor;\n" +
+                        "import java.util.List;\n" +
+                        "\n" +
+                        "public class Test<T> {\n" +
+                        "    private final List<T> arg;\n" +
+                        "    @GsonConstructor\n" +
+                        "    public Test(List<T> arg) {\n" +
+                        "        this.arg = arg;\n" +
+                        "    }\n" +
+                        "    \n" +
+                        "    public List<T> arg() {\n" +
+                        "        return arg;\n" +
+                        "    }\n" +
+                        "}"))
+                .processedWith(new GsonValueProcessor())
+                .compilesWithoutError()
+                .and().generatesSources(JavaFileObjects.forSourceString("test.ValueTypeAdapter_Test",
+                "package test;\n" +
+                        "\n" +
+                        "import com.google.gson.Gson;\n" +
+                        "import com.google.gson.TypeAdapter;\n" +
+                        "import com.google.gson.reflect.TypeToken;\n" +
+                        "import com.google.gson.stream.JsonReader;\n" +
+                        "import com.google.gson.stream.JsonWriter;\n" +
+                        "import java.io.IOException;\n" +
+                        "import java.lang.reflect.ParameterizedType;\n" +
+                        "import java.util.List;\n" +
+                        "import me.tatarka.gsonvalue.internal.Types;\n" +
+                        "\n" +
+                        "public class ValueTypeAdapter_Test<T> extends TypeAdapter<Test<T>> {\n" +
+                        "    private final TypeAdapter<List<T>> adapter_arg;\n" +
+                        "    public ValueTypeAdapter_Test(Gson gson, TypeToken<Test<T>> typeToken) {\n" +
+                        "        this.adapter_arg = gson.getAdapter((TypeToken<List<T>>) TypeToken.get(Types.newParameterizedType(List.class, ((ParameterizedType)typeToken.getType()).getActualTypeArguments()[0])));\n" +
+                        "    }\n" +
+                        "    @Override\n" +
+                        "    public void write(JsonWriter out, Test<T> value) throws IOException {\n" +
+                        "        out.beginObject();\n" +
+                        "        out.name(\"arg\");\n" +
+                        "        adapter_arg.write(out, value.arg());\n" +
+                        "        out.endObject();\n" +
+                        "    }\n" +
+                        "\n" +
+                        "    @Override\n" +
+                        "    public Test<T> read(JsonReader in) throws IOException {\n" +
+                        "        List<T> _arg = null;\n" +
+                        "        in.beginObject();\n" +
+                        "        while (in.hasNext()) {\n" +
+                        "            switch (in.nextName()) {\n" +
+                        "                case \"arg\":\n" +
+                        "                    _arg = adapter_arg.read(in);\n" +
+                        "                    break;\n" +
+                        "            }\n" +
+                        "        }\n" +
+                        "        in.endObject();\n" +
+                        "        return new Test<T>(_arg);\n" +
                         "    }\n" +
                         "}"));
     }

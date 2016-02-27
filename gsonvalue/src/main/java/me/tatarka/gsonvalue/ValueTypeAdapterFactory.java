@@ -34,8 +34,8 @@ public class ValueTypeAdapterFactory implements TypeAdapterFactory {
 
         try {
             Class<TypeAdapter<T>> typeAdapterClass = (Class<TypeAdapter<T>>) Class.forName(typeAdapterClassName);
-            Constructor<TypeAdapter<T>> constructor = typeAdapterClass.getConstructor(Gson.class);
-            TypeAdapter<T> typeAdapter = constructor.newInstance(gson);
+            Constructor<TypeAdapter<T>> constructor = typeAdapterClass.getConstructor(Gson.class, TypeToken.class);
+            TypeAdapter<T> typeAdapter = constructor.newInstance(gson, type);
             TYPE_MAP.put(type, typeAdapter);
             return typeAdapter;
         } catch (ClassNotFoundException e) {
