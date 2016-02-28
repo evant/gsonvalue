@@ -89,9 +89,9 @@ public class GsonValueSerializeTest {
     }
 
     @Test
-    public void serializeIgnoreOtherMethods() {
-        IgnoreOtherMethods ignoreOtherMethods = new IgnoreOtherMethods(1);
-        String json = gson.toJson(ignoreOtherMethods);
+    public void serializeIgnoreObjectMethods() {
+        IgnoreObjectMethods ignoreObjectMethods = new IgnoreObjectMethods(1);
+        String json = gson.toJson(ignoreObjectMethods);
 
         assertEquals("{\"arg\":1}", json);
     }
