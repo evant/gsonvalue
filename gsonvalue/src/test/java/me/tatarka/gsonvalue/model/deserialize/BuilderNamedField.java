@@ -4,6 +4,11 @@ import com.google.gson.annotations.SerializedName;
 import me.tatarka.gsonvalue.annotations.GsonBuilder;
 
 public class BuilderNamedField {
+    @GsonBuilder
+    public static Builder builder() {
+        return new Builder();
+    }
+
     private final int arg;
 
     private BuilderNamedField(int arg) {
@@ -17,10 +22,6 @@ public class BuilderNamedField {
 
     public static class Builder {
         private int arg;
-
-        @GsonBuilder
-        public Builder() {
-        }
 
         public Builder arg(int arg) {
             this.arg = arg;
