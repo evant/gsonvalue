@@ -10,7 +10,7 @@ buildscript {
 
 allprojects {
     group 'me.tatarka.gsonvalue'
-    version '0.3-SNAPSHOT'
+    version '0.3'
 
     repositories {
         mavenCentral()

@@ -19,12 +19,12 @@ choose.
 <dependency>
   <groupId>me.tatarka.gsonvalue</groupId>
   <artifactId>gsonvalue</artifactId>
-  <version>0.2</version>
+  <version>0.3</version>
 </dependency>
 <dependency>
   <groupId>me.tatarka.gsonvalue</groupId>
   <artifactId>gsonvalue-processor</artifactId>
-  <version>0.2</version>
+  <version>0.3</version>
   <scope>provided</scope>
 </dependency>
 ```
@@ -36,8 +36,8 @@ You may want to use a gradle plugin for easier management of apt dependencies. F
 [android-apt](https://bitbucket.org/hvisser/android-apt) for android.
 
 ```groovy
-apt 'me.tatarka.gsonvalue:gsonvalue-processor:0.2'
-compile 'me.tatarka.gsonvalue:gsonvalue:0.2'
+apt 'me.tatarka.gsonvalue:gsonvalue-processor:0.3'
+compile 'me.tatarka.gsonvalue:gsonvalue:0.3'
 ```
 
 ## Usage 
