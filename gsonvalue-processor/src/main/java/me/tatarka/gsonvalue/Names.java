@@ -5,23 +5,27 @@ import javax.lang.model.element.Modifier;
 import javax.lang.model.element.VariableElement;
 import javax.lang.model.type.TypeKind;
 import javax.lang.model.type.TypeMirror;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 class Names {
+    private static final List<String> METHODS_TO_SKIP = Arrays.asList(
+            "hashCode", "toString", "clone"
+    );
+
     private List<Name.GetterName> getters = new ArrayList<Name.GetterName>();
     private List<Name.FieldName> fields = new ArrayList<Name.FieldName>();
     private List<Name.ConstructorParamName> constructorParams = new ArrayList<Name.ConstructorParamName>();
     private List<Name.BuilderParamName> builderParams = new ArrayList<Name.BuilderParamName>();
     private List<Name> params = new ArrayList<Name>();
+    private List<Name> names = new ArrayList<>();
 
     public void addGetter(ExecutableElement method) {
         Set<Modifier> modifiers = method.getModifiers();
         if (modifiers.contains(Modifier.PRIVATE) ||
                 modifiers.contains(Modifier.STATIC) ||
                 method.getReturnType().getKind() == TypeKind.VOID ||
-                !method.getParameters().isEmpty()) {
+                !method.getParameters().isEmpty() ||
+                METHODS_TO_SKIP.contains(method.getSimpleName().toString())) {
             return;
         }
         getters.add(new Name.GetterName(method));
@@ -51,12 +55,21 @@ class Names {
     }
 
     public void finish() throws ElementException {
-        removeExtraMethods(getters, params, /*includeBeans=*/false);
         stripBeans(getters);
-        removeExtraMethods(getters, params, /*includeBeans=*/true);
         removeExtraBuilders();
         mergeSerializeNames(params, fields, getters);
         removeExtraFields();
+        names.addAll(params);
+        for (Name field : fields) {
+            if (!containsName(names, field)) {
+                names.add(field);
+            }
+        }
+        for (Name getter: getters) {
+            if (!containsName(names, getter)) {
+                names.add(getter);
+            }
+        }
     }
 
     private static void merge(Name... names) throws ElementException {
@@ -81,17 +94,6 @@ class Names {
             for (Name name : names) {
                 if (name != null) {
                     name.serializeName = serializeName;
-                }
-            }
-        }
-    }
-
-    private static void removeExtraMethods(List<Name.GetterName> getters, List<Name> params, boolean includeBeans) {
-        for (int i = getters.size() - 1; i >= 0; i--) {
-            Name.GetterName getter = getters.get(i);
-            if (includeBeans || !getter.isBean()) {
-                if (!containsName(params, getter)) {
-                    getters.remove(i);
                 }
             }
         }
@@ -157,6 +159,10 @@ class Names {
 
     private static boolean containsName(List<? extends Name> names, Name name) {
         return findName(names, name) != null;
+    }
+
+    public Iterable<Name> names() {
+        return names;
     }
 
     public Iterable<Name> params() {

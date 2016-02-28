@@ -125,7 +125,6 @@ public class GsonValueProcessor extends AbstractProcessor {
             return;
         }
 
-        Iterable<Name> params = names.params();
         TypeName classType = TypeName.get(classElement.asType());
         List<TypeVariableName> typeVariables = new ArrayList<>();
         if (classType instanceof ParameterizedTypeName) {
@@ -141,10 +140,10 @@ public class GsonValueProcessor extends AbstractProcessor {
                 .superclass(ParameterizedTypeName.get(TYPE_ADAPTER, classType));
 
         // TypeAdapters
-        for (Name param : params) {
-            TypeName typeName = TypeName.get(param.getType());
+        for (Name name : names.names()) {
+            TypeName typeName = TypeName.get(name.getType());
             TypeName typeAdapterType = ParameterizedTypeName.get(TYPE_ADAPTER, typeName.box());
-            spec.addField(FieldSpec.builder(typeAdapterType, TYPE_ADAPTER_PREFIX + param.getName())
+            spec.addField(FieldSpec.builder(typeAdapterType, TYPE_ADAPTER_PREFIX + name.getName())
                     .addModifiers(Modifier.PRIVATE, Modifier.FINAL)
                     .build());
         }
@@ -155,10 +154,10 @@ public class GsonValueProcessor extends AbstractProcessor {
                     .addModifiers(Modifier.PUBLIC)
                     .addParameter(GSON, "gson")
                     .addParameter(ParameterizedTypeName.get(TYPE_TOKEN, classType), "typeToken");
-            for (Name param : params) {
-                TypeMirror type = param.getType();
+            for (Name name : names.names()) {
+                TypeMirror type = name.getType();
                 TypeName typeName = TypeName.get(type);
-                String typeAdapterName = TYPE_ADAPTER_PREFIX + param.getName();
+                String typeAdapterName = TYPE_ADAPTER_PREFIX + name.getName();
 
                 if (isComplexType(type)) {
                     TypeName typeTokenType = ParameterizedTypeName.get(TYPE_TOKEN, typeName);
@@ -179,7 +178,7 @@ public class GsonValueProcessor extends AbstractProcessor {
                     }
                 } else if (isGenericType(type)) {
                     TypeName typeTokenType = ParameterizedTypeName.get(TYPE_TOKEN, typeName);
-                    int typeIndex = typeVariables.indexOf(TypeVariableName.get(param.getType().toString()));
+                    int typeIndex = typeVariables.indexOf(TypeVariableName.get(name.getType().toString()));
                     constructor.addStatement("this.$L = gson.getAdapter(($T) $T.get((($T)typeToken.getType()).getActualTypeArguments()[$L]))",
                             typeAdapterName, typeTokenType, TYPE_TOKEN, ParameterizedType.class, typeIndex);
                 } else {
@@ -215,6 +214,7 @@ public class GsonValueProcessor extends AbstractProcessor {
 
         // @Override public T read(JsonReader in) throws IOException
         {
+            Iterable<Name> params = names.params();
             CodeBlock.Builder code = CodeBlock.builder();
             boolean isEmpty = true;
             for (Name name : params) {
@@ -310,7 +310,8 @@ public class GsonValueProcessor extends AbstractProcessor {
             addFieldsAndGetters(names, (TypeElement) typeUtils.asElement(superInterface));
         }
 
-        if (classElement.getSuperclass().getKind() != TypeKind.NONE) {
+        TypeMirror superclass = classElement.getSuperclass();
+        if (superclass.getKind() != TypeKind.NONE && !superclass.toString().equals("java.lang.Object")) {
             addFieldsAndGetters(names, (TypeElement) typeUtils.asElement(classElement.getSuperclass()));
         }
     }
