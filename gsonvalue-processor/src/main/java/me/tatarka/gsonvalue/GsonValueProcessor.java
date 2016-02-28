@@ -8,6 +8,7 @@ import javax.annotation.processing.*;
 import javax.lang.model.SourceVersion;
 import javax.lang.model.element.*;
 import javax.lang.model.type.DeclaredType;
+import javax.lang.model.type.MirroredTypeException;
 import javax.lang.model.type.TypeKind;
 import javax.lang.model.type.TypeMirror;
 import javax.lang.model.util.ElementFilter;
@@ -67,17 +68,32 @@ public class GsonValueProcessor extends AbstractProcessor {
     }
 
     private void process(ExecutableElement element) throws IOException {
-        TypeElement classElement = (TypeElement) element.getEnclosingElement();
-
         boolean isConstructor = element.getKind() == ElementKind.CONSTRUCTOR;
         boolean isBuilder = element.getAnnotation(GsonBuilder.class) != null;
 
-        if (isConstructor && isBuilder) {
-            // Annotation is on builder class, get real class
-            classElement = (TypeElement) classElement.getEnclosingElement();
+        TypeElement classElement;
+        if (isBuilder) {
+            TypeElement builderClass;
+            if (isConstructor) {
+                builderClass = (TypeElement) element.getEnclosingElement();
+            } else {
+                builderClass = (TypeElement) typeUtils.asElement(element.getReturnType());
+            }
+            classElement = discoverBuiltClass(element, builderClass);
+            if (classElement == null) {
+                messager.printMessage(Diagnostic.Kind.ERROR, "Could not find class that builder " + builderClass + " builds. Consider providing it in the @GsonBuilder annotation.", builderClass);
+                return;
+            }
+        } else {
+            if (isConstructor) {
+                classElement = (TypeElement) element.getEnclosingElement();
+            } else {
+                classElement = (TypeElement) typeUtils.asElement(element.getReturnType());
+            }
         }
 
         ClassName className = ClassName.get(classElement);
+        ClassName creatorName = ClassName.get((TypeElement) element.getEnclosingElement());
         ClassName typeAdapterClassName = ClassName.get(className.packageName(), PREFIX + join("_", className.simpleNames()));
 
         Names names = new Names();
@@ -97,7 +113,7 @@ public class GsonValueProcessor extends AbstractProcessor {
                 builderType = builderClass.asType();
             } else {
                 builderType = element.getReturnType();
-                builderClass = findInnerClass(classElement, builderType);
+                builderClass = (TypeElement) typeUtils.asElement(builderType);
             }
 
             if (builderClass == null) {
@@ -246,7 +262,7 @@ public class GsonValueProcessor extends AbstractProcessor {
                 if (isConstructor) {
                     code.add("return new $T($L)", builderClass, args);
                 } else {
-                    code.add("return $T.$L($L)", className, element.getSimpleName(), args);
+                    code.add("return $T.$L($L)", creatorName, element.getSimpleName(), args);
                 }
                 code.add("\n").indent();
                 for (Name name : names.builderParams()) {
@@ -258,7 +274,7 @@ public class GsonValueProcessor extends AbstractProcessor {
                 if (isConstructor) {
                     code.addStatement("return new $T($L)", classType, args);
                 } else {
-                    code.addStatement("return $T.$L($L)", className, element.getSimpleName(), args);
+                    code.addStatement("return $T.$L($L)", creatorName, element.getSimpleName(), args);
                 }
             }
 
@@ -341,12 +357,58 @@ public class GsonValueProcessor extends AbstractProcessor {
         }
     }
 
-    private static TypeElement findInnerClass(TypeElement classElement, TypeMirror type) {
-        for (TypeElement element : ElementFilter.typesIn(classElement.getEnclosedElements())) {
-            if (element.asType().equals(type)) {
-                return element;
+    private TypeElement discoverBuiltClass(Element annotaded, TypeElement builderClass) {
+        // First check to see if the annotation tells us.
+        {
+            String builtClass = null;
+            for (AnnotationMirror annotationMirror : annotaded.getAnnotationMirrors()) {
+                if (annotationMirror.getAnnotationType().toString().equals(GsonBuilder.class.getName())) {
+                    if (!annotationMirror.getElementValues().isEmpty()) {
+                        AnnotationValue value = annotationMirror.getElementValues().values().iterator().next();
+                        builtClass = value.getValue().toString();
+                    }
+                }
+            }
+            if (builtClass != null) {
+                for (ExecutableElement method : ElementFilter.methodsIn(builderClass.getEnclosedElements())) {
+                    if (method.getReturnType().toString().equals(builtClass) && method.getParameters().isEmpty()) {
+                        return (TypeElement) typeUtils.asElement(method.getReturnType());
+                    }
+                }
             }
         }
+        // Ok, maybe there is just one possible builder method.
+        {
+            TypeMirror candidate = null;
+            for (ExecutableElement method : ElementFilter.methodsIn(builderClass.getEnclosedElements())) {
+                if (method.getParameters().isEmpty()
+                        && method.getReturnType().getKind() != TypeKind.VOID
+                        && !method.getReturnType().equals(builderClass.asType())) {
+                    if (candidate == null) {
+                        candidate = method.getReturnType();
+                    } else {
+                        // too many, give up.
+                        candidate = null;
+                        break;
+                    }
+                }
+            }
+            if (candidate != null) {
+                return (TypeElement) typeUtils.asElement(candidate);
+            }
+        }
+        // Last try, check to see if the immediate parent class makes sense.
+        {
+            Element candidate = builderClass.getEnclosingElement();
+            if (candidate.getKind() == ElementKind.CLASS) {
+                for (ExecutableElement method : ElementFilter.methodsIn(builderClass.getEnclosedElements())) {
+                    if (method.getReturnType().equals(candidate.asType()) && method.getParameters().isEmpty()) {
+                        return (TypeElement) candidate;
+                    }
+                }
+            }
+        }
+        // Well, I give up.
         return null;
     }
 
