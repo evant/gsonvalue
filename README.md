@@ -8,8 +8,9 @@ constructed and properly hide implementation details from serialization. This li
 TypeAdapters the call your constructor, factory method, or builder to construct you an instance of
 your class and will only public fields and methods to write it out. 
 
-This library is a nice companion with google's [AutoValue](https://github.com/google/auto/tree/master/value), 
-but you may use it with any class you choose.
+This library is a nice companion with google's
+[AutoValue](https://github.com/google/auto/tree/master/value), but you may use it with any class you
+choose.
 
 ## Download
 
@@ -31,7 +32,7 @@ but you may use it with any class you choose.
 ### Gradle
 
 You may want to use a gradle plugin for easier management of apt dependencies. For example,
-[gradle-apt-plugin](https://github.com/tbroyer/gradle-apt-plugin) for plain java or 
+[gradle-apt-plugin](https://github.com/tbroyer/gradle-apt-plugin) for plain java or
 [android-apt](https://bitbucket.org/hvisser/android-apt) for android.
 
 ```groovy
@@ -79,8 +80,7 @@ apply if all getters follow that style.
 ### Builders
 
 Alternatively, you can create an inner builder class. Annotate either the builder's constructor or
-factory method that returns the builder with `@GsonBuilder`. Currently, _only_ inner
-classes are supported.
+ factory method that returns the builder with `@GsonBuilder`.
 
 ```java
 import me.tatarka.gsonvalue.annotations.GsonConstructor;
@@ -114,6 +114,12 @@ public class Bar {
 }
 ```
 
+In most cases the class being built will be discovered from the builder. However, it's possible that
+it is ambiguous. In that case, you can provide the built class in the annotation
+`@GsonBuilder(Foo.class)`.
+
+### Gson
+
 Finally register `ValueTypeAdapterFactory` to you gson builder.
 ```java
 gson = new GsonBuilder()
@@ -123,8 +129,8 @@ gson = new GsonBuilder()
 
 ### Supported Gson features.
 
-* `@SerializeName()` is supported on fields or getters. It will map to both the constructor parameter
-on deserialization and the field or getter on serialization.
+* `@SerializeName()` is supported on fields or getters. It will map to both the constructor
+parameter on deserialization and the field or getter on serialization.
 * Transient fields are ignored.
 
 ### Unsupported features.
