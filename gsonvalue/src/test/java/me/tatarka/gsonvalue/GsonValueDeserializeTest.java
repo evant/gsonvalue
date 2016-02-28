@@ -103,6 +103,14 @@ public class GsonValueDeserializeTest {
     }
 
     @Test
+    public void deserializeAbstractBuilderNamedField() {
+        AbstractNamedField namedField = gson.fromJson("{\"named\":1}", AbstractNamedField.class);
+
+        assertNotNull(namedField);
+        assertEquals(1, namedField.arg());
+    }
+
+    @Test
     public void deserializeComplexArg() {
         ComplexArg complexArg = gson.fromJson("{\"args\":[\"one\",\"two\"]}", ComplexArg.class);
 

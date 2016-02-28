@@ -55,22 +55,34 @@ class Names {
         stripBeans(getters);
         removeExtraMethods(getters, params, /*includeBeans=*/true);
         removeExtraBuilders();
-        mergeSerializeNames(fields, getters);
-        mergeSerializeNames(params, fields);
+        mergeSerializeNames(params, fields, getters);
         removeExtraFields();
     }
 
-    private static void merge(Name newName, Name existingName) throws ElementException {
-        if (newName == null || existingName == null) {
+    private static void merge(Name... names) throws ElementException {
+        if (names.length == 0) {
             return;
         }
-        if (newName.serializeName != null && existingName.serializeName != null) {
-            throw new ElementException("Duplicate @SerializeName() found on " + newName + " and " + existingName, newName.element);
+
+        String serializeName = null;
+        for (Name name : names) {
+            if (name == null) {
+                continue;
+            }
+            if (name.serializeName != null) {
+                if (serializeName == null) {
+                    serializeName = name.serializeName;
+                } else {
+                    throw new ElementException("Duplicate @SerializeName() found on " + name, name.element);
+                }
+            }
         }
-        if (newName.serializeName == null && existingName.serializeName != null) {
-            newName.serializeName = existingName.serializeName;
-        } else if (newName.serializeName != null) {
-            existingName.serializeName = newName.serializeName;
+        if (serializeName != null) {
+            for (Name name : names) {
+                if (name != null) {
+                    name.serializeName = serializeName;
+                }
+            }
         }
     }
 
@@ -119,23 +131,32 @@ class Names {
         }
     }
 
-    private static void mergeSerializeNames(List<? extends Name> one, List<? extends Name> two) throws ElementException {
-        for (Name o : one) {
-            for (Name t : two) {
-                if (o.getName().equals(t.getName())) {
-                    merge(o, t);
-                }
+    @SafeVarargs
+    private static void mergeSerializeNames(List<? extends Name>... nameLists) throws ElementException {
+        if (nameLists.length == 0) {
+            return;
+        }
+        for (Name name : nameLists[0]) {
+            Name[] names = new Name[nameLists.length];
+            names[0] = name;
+            for (int i = 1; i < nameLists.length; i++) {
+                names[i] = findName(nameLists[i], name);
             }
+            merge(names);
         }
     }
 
-    private static boolean containsName(List<? extends Name> names, Name name) {
+    private static Name findName(List<? extends Name> names, Name name) {
         for (Name n : names) {
             if (n.getName().equals(name.getName())) {
-                return true;
+                return n;
             }
         }
-        return false;
+        return null;
+    }
+
+    private static boolean containsName(List<? extends Name> names, Name name) {
+        return findName(names, name) != null;
     }
 
     public Iterable<Name> params() {

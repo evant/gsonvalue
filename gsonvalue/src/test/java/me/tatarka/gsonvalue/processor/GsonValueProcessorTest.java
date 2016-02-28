@@ -105,8 +105,8 @@ public class GsonValueProcessorTest {
                         "                case \"arg\":\n" +
                         "                    _arg = adapter_arg.read(in);\n" +
                         "                    break;\n" +
-                        "                default:" +
-                        "                    in.skipValue();" +
+                        "                default:\n" +
+                        "                    in.skipValue();\n" +
                         "            }\n" +
                         "        }\n" +
                         "        in.endObject();\n" +
@@ -168,8 +168,8 @@ public class GsonValueProcessorTest {
                         "                case \"arg\":\n" +
                         "                    _arg = adapter_arg.read(in);\n" +
                         "                    break;\n" +
-                        "                default:" +
-                        "                    in.skipValue();" +
+                        "                default:\n" +
+                        "                    in.skipValue();\n" +
                         "            }\n" +
                         "        }\n" +
                         "        in.endObject();\n" +
@@ -243,8 +243,8 @@ public class GsonValueProcessorTest {
                         "                case \"arg\":\n" +
                         "                    _arg = adapter_arg.read(in);\n" +
                         "                    break;\n" +
-                        "                default:" +
-                        "                    in.skipValue();" +
+                        "                default:\n" +
+                        "                    in.skipValue();\n" +
                         "            }\n" +
                         "        }\n" +
                         "        in.endObject();\n" +
@@ -321,8 +321,8 @@ public class GsonValueProcessorTest {
                         "                case \"arg\":\n" +
                         "                    _arg = adapter_arg.read(in);\n" +
                         "                    break;\n" +
-                        "                default:" +
-                        "                    in.skipValue();" +
+                        "                default:\n" +
+                        "                    in.skipValue();\n" +
                         "            }\n" +
                         "        }\n" +
                         "        in.endObject();\n" +
@@ -393,8 +393,8 @@ public class GsonValueProcessorTest {
                         "                case \"arg\":\n" +
                         "                    _arg = adapter_arg.read(in);\n" +
                         "                    break;\n" +
-                        "                default:" +
-                        "                    in.skipValue();" +
+                        "                default:\n" +
+                        "                    in.skipValue();\n" +
                         "            }\n" +
                         "        }\n" +
                         "        in.endObject();\n" +
@@ -473,8 +473,8 @@ public class GsonValueProcessorTest {
                         "                case \"named\":\n" +
                         "                    _arg = adapter_arg.read(in);\n" +
                         "                    break;\n" +
-                        "                default:" +
-                        "                    in.skipValue();" +
+                        "                default:\n" +
+                        "                    in.skipValue();\n" +
                         "            }\n" +
                         "        }\n" +
                         "        in.endObject();\n" +
@@ -538,8 +538,8 @@ public class GsonValueProcessorTest {
                         "                case \"arg\":\n" +
                         "                    _arg = adapter_arg.read(in);\n" +
                         "                    break;\n" +
-                        "                default:" +
-                        "                    in.skipValue();" +
+                        "                default:\n" +
+                        "                    in.skipValue();\n" +
                         "            }\n" +
                         "        }\n" +
                         "        in.endObject();\n" +
@@ -601,8 +601,8 @@ public class GsonValueProcessorTest {
                         "                case \"arg\":\n" +
                         "                    _arg = adapter_arg.read(in);\n" +
                         "                    break;\n" +
-                        "                default:" +
-                        "                    in.skipValue();" +
+                        "                default:\n" +
+                        "                    in.skipValue();\n" +
                         "            }\n" +
                         "        }\n" +
                         "        in.endObject();\n" +
@@ -667,12 +667,87 @@ public class GsonValueProcessorTest {
                         "                case \"arg\":\n" +
                         "                    _arg = adapter_arg.read(in);\n" +
                         "                    break;\n" +
-                        "                default:" +
-                        "                    in.skipValue();" +
+                        "                default:\n" +
+                        "                    in.skipValue();\n" +
                         "            }\n" +
                         "        }\n" +
                         "        in.endObject();\n" +
                         "        return new Test<T>(_arg);\n" +
+                        "    }\n" +
+                        "}"));
+    }
+
+    @Test
+    public void abstractNamedField() {
+        ASSERT.about(javaSource()).that(JavaFileObjects.forSourceString("test.Test",
+                "package test;\n" +
+                        "\n" +
+                        "import com.google.gson.annotations.SerializedName;\n" +
+                        "import me.tatarka.gsonvalue.annotations.GsonConstructor;\n" +
+                        "\n" +
+                        "public abstract class Test {\n" +
+                        "\n" +
+                        "    @GsonConstructor\n" +
+                        "    public static Test create(int arg) {\n" +
+                        "        return new TestImpl(arg);\n" +
+                        "    }\n" +
+                        "    \n" +
+                        "    @SerializedName(\"named\")\n" +
+                        "    public abstract int arg();\n" +
+                        "    \n" +
+                        "    static class TestImpl extends Test {\n" +
+                        "        private final int arg;\n" +
+                        "        \n" +
+                        "        TestImpl(int arg) {\n" +
+                        "            this.arg = arg;\n" +
+                        "        }\n" +
+                        "\n" +
+                        "        @Override\n" +
+                        "        public int arg() {\n" +
+                        "            return arg;\n" +
+                        "        }\n" +
+                        "    }\n" +
+                        "}"))
+                .processedWith(new GsonValueProcessor())
+                .compilesWithoutError()
+                .and().generatesSources(JavaFileObjects.forSourceString("test.ValueTypeAdapter_Test",
+                "package test;\n" +
+                        "\n" +
+                        "import com.google.gson.Gson;\n" +
+                        "import com.google.gson.TypeAdapter;\n" +
+                        "import com.google.gson.reflect.TypeToken;\n" +
+                        "import com.google.gson.stream.JsonReader;\n" +
+                        "import com.google.gson.stream.JsonWriter;\n" +
+                        "import java.io.IOException;\n" +
+                        "\n" +
+                        "public class ValueTypeAdapter_Test extends TypeAdapter<Test> {\n" +
+                        "    private final TypeAdapter<Integer> adapter_arg;\n" +
+                        "    public ValueTypeAdapter_Test(Gson gson, TypeToken<Test> typeToken) {\n" +
+                        "        this.adapter_arg = gson.getAdapter(int.class);\n" +
+                        "    }\n" +
+                        "    @Override\n" +
+                        "    public void write(JsonWriter out, Test value) throws IOException {\n" +
+                        "        out.beginObject();\n" +
+                        "        out.name(\"named\");\n" +
+                        "        adapter_arg.write(out, value.arg());\n" +
+                        "        out.endObject();\n" +
+                        "    }\n" +
+                        "\n" +
+                        "    @Override\n" +
+                        "    public Test read(JsonReader in) throws IOException {\n" +
+                        "        int _arg = 0;\n" +
+                        "        in.beginObject();\n" +
+                        "        while (in.hasNext()) {\n" +
+                        "            switch (in.nextName()) {\n" +
+                        "                case \"named\":\n" +
+                        "                    _arg = adapter_arg.read(in);\n" +
+                        "                    break;\n" +
+                        "                default:\n" +
+                        "                    in.skipValue();\n" +
+                        "            }\n" +
+                        "        }\n" +
+                        "        in.endObject();\n" +
+                        "        return Test.create(_arg);\n" +
                         "    }\n" +
                         "}"));
     }
