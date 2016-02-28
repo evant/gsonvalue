@@ -105,6 +105,8 @@ public class GsonValueProcessorTest {
                         "                case \"arg\":\n" +
                         "                    _arg = adapter_arg.read(in);\n" +
                         "                    break;\n" +
+                        "                default:" +
+                        "                    in.skipValue();" +
                         "            }\n" +
                         "        }\n" +
                         "        in.endObject();\n" +
@@ -166,6 +168,8 @@ public class GsonValueProcessorTest {
                         "                case \"arg\":\n" +
                         "                    _arg = adapter_arg.read(in);\n" +
                         "                    break;\n" +
+                        "                default:" +
+                        "                    in.skipValue();" +
                         "            }\n" +
                         "        }\n" +
                         "        in.endObject();\n" +
@@ -239,6 +243,8 @@ public class GsonValueProcessorTest {
                         "                case \"arg\":\n" +
                         "                    _arg = adapter_arg.read(in);\n" +
                         "                    break;\n" +
+                        "                default:" +
+                        "                    in.skipValue();" +
                         "            }\n" +
                         "        }\n" +
                         "        in.endObject();\n" +
@@ -315,6 +321,8 @@ public class GsonValueProcessorTest {
                         "                case \"arg\":\n" +
                         "                    _arg = adapter_arg.read(in);\n" +
                         "                    break;\n" +
+                        "                default:" +
+                        "                    in.skipValue();" +
                         "            }\n" +
                         "        }\n" +
                         "        in.endObject();\n" +
@@ -385,6 +393,8 @@ public class GsonValueProcessorTest {
                         "                case \"arg\":\n" +
                         "                    _arg = adapter_arg.read(in);\n" +
                         "                    break;\n" +
+                        "                default:" +
+                        "                    in.skipValue();" +
                         "            }\n" +
                         "        }\n" +
                         "        in.endObject();\n" +
@@ -463,6 +473,8 @@ public class GsonValueProcessorTest {
                         "                case \"named\":\n" +
                         "                    _arg = adapter_arg.read(in);\n" +
                         "                    break;\n" +
+                        "                default:" +
+                        "                    in.skipValue();" +
                         "            }\n" +
                         "        }\n" +
                         "        in.endObject();\n" +
@@ -526,6 +538,8 @@ public class GsonValueProcessorTest {
                         "                case \"arg\":\n" +
                         "                    _arg = adapter_arg.read(in);\n" +
                         "                    break;\n" +
+                        "                default:" +
+                        "                    in.skipValue();" +
                         "            }\n" +
                         "        }\n" +
                         "        in.endObject();\n" +
@@ -587,6 +601,8 @@ public class GsonValueProcessorTest {
                         "                case \"arg\":\n" +
                         "                    _arg = adapter_arg.read(in);\n" +
                         "                    break;\n" +
+                        "                default:" +
+                        "                    in.skipValue();" +
                         "            }\n" +
                         "        }\n" +
                         "        in.endObject();\n" +
@@ -651,6 +667,8 @@ public class GsonValueProcessorTest {
                         "                case \"arg\":\n" +
                         "                    _arg = adapter_arg.read(in);\n" +
                         "                    break;\n" +
+                        "                default:" +
+                        "                    in.skipValue();" +
                         "            }\n" +
                         "        }\n" +
                         "        in.endObject();\n" +

@@ -95,6 +95,14 @@ public class GsonValueDeserializeTest {
     }
 
     @Test
+    public void deserializeBuilderNamedField() {
+        BuilderNamedField namedField = gson.fromJson("{\"named\":1}", BuilderNamedField.class);
+
+        assertNotNull(namedField);
+        assertEquals(1, namedField.arg());
+    }
+
+    @Test
     public void deserializeComplexArg() {
         ComplexArg complexArg = gson.fromJson("{\"args\":[\"one\",\"two\"]}", ComplexArg.class);
 
@@ -130,5 +138,14 @@ public class GsonValueDeserializeTest {
         assertNotNull(constructorArg);
         assertEquals(Integer.valueOf(1), constructorArg.arg);
         assertTrue(constructorArg.factoryMethodCalled);
+    }
+
+    @Test
+    public void deserializeIgnoreJsonField() {
+        ConstructorArg constructorArg = gson.fromJson("{\"arg\":1,\"ignore\":2}", ConstructorArg.class);
+
+        assertNotNull(constructorArg);
+        assertEquals(1, constructorArg.arg);
+        assertTrue(constructorArg.constructorCalled);
     }
 }
