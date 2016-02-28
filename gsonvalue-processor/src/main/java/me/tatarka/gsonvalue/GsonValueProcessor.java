@@ -232,6 +232,10 @@ public class GsonValueProcessor extends AbstractProcessor {
                     code.addStatement("$L = $L.read(in)", ARG_PREFIX + name.getName(), TYPE_ADAPTER_PREFIX + name.getName())
                             .addStatement("break").unindent();
                 }
+                code.add("default:\n").indent()
+                        .addStatement("in.skipValue()")
+                        .unindent();
+
                 code.endControlFlow()
                         .endControlFlow()
                         .addStatement("in.endObject()");
