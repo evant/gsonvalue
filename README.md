@@ -6,7 +6,7 @@ By default, gson uses reflection to read and write fields of you class from json
 this is that it breaks encapsulation. This prevents you from enforcing invariants when you class is
 constructed and properly hide implementation details from serialization. This library will generate
 TypeAdapters the call your constructor, factory method, or builder to construct you an instance of
-your class and will only public fields and methods to write it out. 
+your class and will only use accessible fields and methods to write it out.
 
 This library is a nice companion with google's
 [AutoValue](https://github.com/google/auto/tree/master/value), but you may use it with any class you
@@ -79,8 +79,8 @@ apply if all getters follow that style.
 
 ### Builders
 
-Alternatively, you can create an inner builder class. Annotate either the builder's constructor or
- factory method that returns the builder with `@GsonBuilder`.
+Alternatively, you can create a builder class. Annotate either the builder's constructor or
+ the factory method that returns the builder with `@GsonBuilder`.
 
 ```java
 import me.tatarka.gsonvalue.annotations.GsonConstructor;
@@ -129,7 +129,7 @@ gson = new GsonBuilder()
 
 ### Supported Gson features.
 
-* `@SerializeName()` is supported on fields or getters. It will map to both the constructor
+* `@SerializeName` is supported on fields or getters. It will map to both the constructor
 parameter on deserialization and the field or getter on serialization.
 * Transient fields are ignored.
 
@@ -138,7 +138,7 @@ parameter on deserialization and the field or getter on serialization.
 The following features are not supported. They may be added if there is enough demand.
 
 * `@Adapter` annotations.
-* Versioning support.
+* `@Since` and `@Until` versioning support.
 * `@Expose` and exclusion strategies.
 * Field naming policies.
 
