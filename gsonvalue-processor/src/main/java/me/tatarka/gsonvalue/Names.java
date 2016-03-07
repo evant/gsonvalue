@@ -1,5 +1,6 @@
 package me.tatarka.gsonvalue;
 
+import javax.lang.model.element.AnnotationMirror;
 import javax.lang.model.element.ExecutableElement;
 import javax.lang.model.element.Modifier;
 import javax.lang.model.element.VariableElement;
@@ -72,13 +73,14 @@ class Names {
         }
     }
 
-    private static void merge(Name... names) throws ElementException {
+    private static void merge(Name<?>... names) throws ElementException {
         if (names.length == 0) {
             return;
         }
 
         String serializeName = null;
-        for (Name name : names) {
+        List<AnnotationMirror> annotations = null;
+        for (Name<?> name : names) {
             if (name == null) {
                 continue;
             }
@@ -89,11 +91,31 @@ class Names {
                     throw new ElementException("Duplicate @SerializeName() found on " + name, name.element);
                 }
             }
+            if (!name.annotations.isEmpty()) {
+                if (annotations == null) {
+                    annotations = new ArrayList<>(name.annotations);
+                } else {
+                    for (AnnotationMirror annotation : name.annotations) {
+                        if (annotations.contains(annotation)) {
+                            throw new ElementException("Duplicate annotation " + annotation + " found on " + name, name.element);
+                        } else {
+                            annotations.add(annotation);
+                        }
+                    }
+                }
+            }
         }
         if (serializeName != null) {
-            for (Name name : names) {
+            for (Name<?> name : names) {
                 if (name != null) {
                     name.serializeName = serializeName;
+                }
+            }
+        }
+        if (annotations != null) {
+            for (Name<?> name : names) {
+                if (name != null) {
+                    name.annotations = annotations;
                 }
             }
         }

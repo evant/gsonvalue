@@ -751,4 +751,136 @@ public class GsonValueProcessorTest {
                         "    }\n" +
                         "}"));
     }
+
+    @Test
+    public void adapterAnnotation() {
+        ASSERT.about(javaSource()).that(JavaFileObjects.forSourceString("test.Test",
+                "package test;\n" +
+                        "\n" +
+                        "import com.google.gson.annotations.JsonAdapter;\n" +
+                        "import me.tatarka.gsonvalue.annotations.GsonConstructor;\n" +
+                        "import me.tatarka.gsonvalue.model.adapters.StringToIntTypeAdapter;\n" +
+                        "\n" +
+                        "public class Test {\n" +
+                        "    @JsonAdapter(StringToIntTypeAdapter.class)\n" +
+                        "    private final int arg;\n" +
+                        "    @GsonConstructor\n" +
+                        "    public Test(int arg) {\n" +
+                        "        this.arg = arg;\n" +
+                        "    }\n" +
+                        "    \n" +
+                        "    public int arg() {\n" +
+                        "        return arg;\n" +
+                        "    }\n" +
+                        "}"))
+                .processedWith(new GsonValueProcessor())
+                .compilesWithoutError()
+                .and().generatesSources(JavaFileObjects.forSourceString("test.ValueTypeAdapter_Test",
+                "package test;\n" +
+                        "\n" +
+                        "import com.google.gson.Gson;\n" +
+                        "import com.google.gson.TypeAdapter;\n" +
+                        "import com.google.gson.reflect.TypeToken;\n" +
+                        "import com.google.gson.stream.JsonReader;\n" +
+                        "import com.google.gson.stream.JsonWriter;\n" +
+                        "import java.io.IOException;\n" +
+                        "import me.tatarka.gsonvalue.model.adapters.StringToIntTypeAdapter;\n" +
+                        "\n" +
+                        "public class ValueTypeAdapter_Test extends TypeAdapter<Test> {\n" +
+                        "    private final TypeAdapter<Integer> adapter_arg;\n" +
+                        "    public ValueTypeAdapter_Test(Gson gson, TypeToken<Test> typeToken) {\n" +
+                        "        this.adapter_arg = new StringToIntTypeAdapter();\n" +
+                        "    }\n" +
+                        "    @Override\n" +
+                        "    public void write(JsonWriter out, Test value) throws IOException {\n" +
+                        "        out.beginObject();\n" +
+                        "        out.name(\"arg\");\n" +
+                        "        adapter_arg.write(out, value.arg());\n" +
+                        "        out.endObject();\n" +
+                        "    }\n" +
+                        "\n" +
+                        "    @Override\n" +
+                        "    public Test read(JsonReader in) throws IOException {\n" +
+                        "        int _arg = 0;\n" +
+                        "        in.beginObject();\n" +
+                        "        while (in.hasNext()) {\n" +
+                        "            switch (in.nextName()) {\n" +
+                        "                case \"arg\":\n" +
+                        "                    _arg = adapter_arg.read(in);\n" +
+                        "                    break;\n" +
+                        "                default:\n" +
+                        "                    in.skipValue();\n" +
+                        "            }\n" +
+                        "        }\n" +
+                        "        in.endObject();\n" +
+                        "        return new Test(_arg);\n" +
+                        "    }\n" +
+                        "}"));
+    }
+
+    @Test
+    public void adapterFactoryAnnotation() {
+        ASSERT.about(javaSource()).that(JavaFileObjects.forSourceString("test.Test",
+                "package test;\n" +
+                        "\n" +
+                        "import com.google.gson.annotations.JsonAdapter;\n" +
+                        "import me.tatarka.gsonvalue.annotations.GsonConstructor;\n" +
+                        "import me.tatarka.gsonvalue.model.adapters.StringToIntTypeAdapterFactory;\n" +
+                        "\n" +
+                        "public class Test {\n" +
+                        "    @JsonAdapter(StringToIntTypeAdapterFactory.class)\n" +
+                        "    private final int arg;\n" +
+                        "    @GsonConstructor\n" +
+                        "    public Test(int arg) {\n" +
+                        "        this.arg = arg;\n" +
+                        "    }\n" +
+                        "    \n" +
+                        "    public int arg() {\n" +
+                        "        return arg;\n" +
+                        "    }\n" +
+                        "}"))
+                .processedWith(new GsonValueProcessor())
+                .compilesWithoutError()
+                .and().generatesSources(JavaFileObjects.forSourceString("test.ValueTypeAdapter_Test",
+                "package test;\n" +
+                        "\n" +
+                        "import com.google.gson.Gson;\n" +
+                        "import com.google.gson.TypeAdapter;\n" +
+                        "import com.google.gson.reflect.TypeToken;\n" +
+                        "import com.google.gson.stream.JsonReader;\n" +
+                        "import com.google.gson.stream.JsonWriter;\n" +
+                        "import java.io.IOException;\n" +
+                        "import me.tatarka.gsonvalue.model.adapters.StringToIntTypeAdapterFactory;\n" +
+                        "\n" +
+                        "public class ValueTypeAdapter_Test extends TypeAdapter<Test> {\n" +
+                        "    private final TypeAdapter<Integer> adapter_arg;\n" +
+                        "    public ValueTypeAdapter_Test(Gson gson, TypeToken<Test> typeToken) {\n" +
+                        "        this.adapter_arg = new StringToIntTypeAdapterFactory().create(gson, TypeToken.get(int.class));\n" +
+                        "    }\n" +
+                        "    @Override\n" +
+                        "    public void write(JsonWriter out, Test value) throws IOException {\n" +
+                        "        out.beginObject();\n" +
+                        "        out.name(\"arg\");\n" +
+                        "        adapter_arg.write(out, value.arg());\n" +
+                        "        out.endObject();\n" +
+                        "    }\n" +
+                        "\n" +
+                        "    @Override\n" +
+                        "    public Test read(JsonReader in) throws IOException {\n" +
+                        "        int _arg = 0;\n" +
+                        "        in.beginObject();\n" +
+                        "        while (in.hasNext()) {\n" +
+                        "            switch (in.nextName()) {\n" +
+                        "                case \"arg\":\n" +
+                        "                    _arg = adapter_arg.read(in);\n" +
+                        "                    break;\n" +
+                        "                default:\n" +
+                        "                    in.skipValue();\n" +
+                        "            }\n" +
+                        "        }\n" +
+                        "        in.endObject();\n" +
+                        "        return new Test(_arg);\n" +
+                        "    }\n" +
+                        "}"));
+    }
 }

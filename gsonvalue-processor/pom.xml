@@ -6,7 +6,7 @@
     <parent>
         <groupId>me.tatarka.gsonvalue</groupId>
         <artifactId>gsonvalue-parent</artifactId>
-        <version>0.3</version>
+        <version>0.4</version>
     </parent>
     <name>gsonvalue-processor</name>
     <description>Compile-time generation of gson TypeAdapters to preserve class encapsulation.</description>

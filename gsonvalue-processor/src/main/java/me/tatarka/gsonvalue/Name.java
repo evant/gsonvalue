@@ -6,17 +6,21 @@ import javax.lang.model.element.ExecutableElement;
 import javax.lang.model.element.VariableElement;
 import javax.lang.model.type.TypeKind;
 import javax.lang.model.type.TypeMirror;
+import java.util.List;
+import java.util.Set;
 
 abstract class Name<E extends Element> {
     private static final String SERIALIZED_NAME = "com.google.gson.annotations.SerializedName";
 
     protected final E element;
     protected String serializeName;
+    protected List<? extends AnnotationMirror> annotations;
     private final Kind kind;
 
     public Name(E element, Kind kind) {
         this.element = element;
         serializeName = serializeName(element);
+        annotations = element.getAnnotationMirrors();
         this.kind = kind;
     }
 
@@ -38,6 +42,10 @@ abstract class Name<E extends Element> {
 
     public Kind getKind() {
         return kind;
+    }
+
+    public Class getAdapterType() {
+        return null;
     }
 
     @Override

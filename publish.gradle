@@ -1,6 +1,5 @@
 if (project.hasProperty('sonatype.username') && project.hasProperty('sonatype.password')) {
     apply plugin: 'com.bmuschko.nexus'
-    apply plugin: 'io.codearte.nexus-staging'
 
     modifyPom {
         project {

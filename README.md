@@ -132,14 +132,16 @@ gson = new GsonBuilder()
 * `@SerializeName` is supported on fields or getters. It will map to both the constructor
 parameter on deserialization and the field or getter on serialization.
 * Transient fields are ignored.
+* `@JsonAdapter()` is supported with either a `TypeAdapter` or `TypeAdapterFactory` as long as it
+has a public no-args constructor. Since gson's version cannot be placed on a getter method, you may
+use `@me.tatarka.gsonvalue.annotations.JsonAdapter` instead if necessary.
 
 ### Unsupported features.
 
 The following features are not supported. They may be added if there is enough demand.
 
-* `@Adapter` annotations.
-* `@Since` and `@Until` versioning support.
-* `@Expose` and exclusion strategies.
+* `@Since()` and `@Until()` versioning support.
+* `@Expose()` and exclusion strategies.
 * Field naming policies.
 
 ## License
