@@ -5,7 +5,8 @@ import me.tatarka.gsonvalue.annotations.GsonBuilder;
 public class StandaloneBuilder {
 
     public static class Class {
-        private final int arg;
+        public transient boolean builderCalled;
+        public final int arg;
 
         Class(int arg) {
             this.arg = arg;
@@ -25,7 +26,9 @@ public class StandaloneBuilder {
         }
 
         public Class build() {
-            return new Class(arg);
+            Class instance = new Class(arg);
+            instance.builderCalled = true;
+            return instance;
         }
     }
 }

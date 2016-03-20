@@ -1,12 +1,12 @@
 package me.tatarka.gsonvalue;
 
-import javax.lang.model.element.AnnotationMirror;
-import javax.lang.model.element.ExecutableElement;
-import javax.lang.model.element.Modifier;
-import javax.lang.model.element.VariableElement;
+import javax.lang.model.element.*;
 import javax.lang.model.type.TypeKind;
 import javax.lang.model.type.TypeMirror;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Set;
 
 class Names {
     private static final List<String> METHODS_TO_SKIP = Arrays.asList(
@@ -20,13 +20,13 @@ class Names {
     private List<Name> params = new ArrayList<Name>();
     private List<Name> names = new ArrayList<>();
 
-    public void addGetter(ExecutableElement method) {
+    public void addGetter(TypeElement classElement, ExecutableElement method) {
         Set<Modifier> modifiers = method.getModifiers();
         if (modifiers.contains(Modifier.PRIVATE) ||
                 modifiers.contains(Modifier.STATIC) ||
                 method.getReturnType().getKind() == TypeKind.VOID ||
                 !method.getParameters().isEmpty() ||
-                METHODS_TO_SKIP.contains(method.getSimpleName().toString())) {
+                isMethodToSkip(classElement, method)) {
             return;
         }
         getters.add(new Name.GetterName(method));
@@ -34,8 +34,7 @@ class Names {
 
     public void addField(VariableElement field) {
         Set<Modifier> modifiers = field.getModifiers();
-        if (modifiers.contains(Modifier.STATIC) ||
-                modifiers.contains(Modifier.TRANSIENT)) {
+        if (modifiers.contains(Modifier.STATIC)) {
             return;
         }
         fields.add(new Name.FieldName(field));
@@ -58,6 +57,7 @@ class Names {
     public void finish() throws ElementException {
         stripBeans(getters);
         removeExtraBuilders();
+        removeGettersForTransientFields();
         mergeSerializeNames(params, fields, getters);
         removeExtraFields();
         names.addAll(params);
@@ -66,7 +66,7 @@ class Names {
                 names.add(field);
             }
         }
-        for (Name getter: getters) {
+        for (Name getter : getters) {
             if (!containsName(names, getter)) {
                 names.add(getter);
             }
@@ -121,17 +121,17 @@ class Names {
         }
     }
 
-    private static void stripBeans(List<Name.GetterName> getters) {
+    private void stripBeans(List<Name.GetterName> getters) {
         boolean allBeans = true;
         for (Name.GetterName getter : getters) {
             if (!getter.isBean()) {
                 allBeans = false;
+                break;
             }
         }
         if (allBeans) {
             for (Name.GetterName getter : getters) {
                 getter.stripBean();
-
             }
         }
     }
@@ -149,8 +149,21 @@ class Names {
     private void removeExtraFields() {
         for (int i = fields.size() - 1; i >= 0; i--) {
             Name.FieldName field = fields.get(i);
-            if (field.element.getModifiers().contains(Modifier.PRIVATE) || containsName(getters, field)) {
+            Set<Modifier> modifiers = field.element.getModifiers();
+            if (modifiers.contains(Modifier.PRIVATE)
+                    || modifiers.contains(Modifier.TRANSIENT)
+                    || containsName(getters, field)) {
                 fields.remove(i);
+            }
+        }
+    }
+
+    private void removeGettersForTransientFields() {
+        for (int i = getters.size() - 1; i >= 0; i--) {
+            Name.GetterName getter = getters.get(i);
+            Name.FieldName field = findName(fields, getter);
+            if (field != null && field.element.getModifiers().contains(Modifier.TRANSIENT)) {
+                getters.remove(i);
             }
         }
     }
@@ -170,8 +183,8 @@ class Names {
         }
     }
 
-    private static Name findName(List<? extends Name> names, Name name) {
-        for (Name n : names) {
+    private static <N extends Name> N findName(List<N> names, Name name) {
+        for (N n : names) {
             if (n.getName().equals(name.getName())) {
                 return n;
             }
@@ -181,6 +194,26 @@ class Names {
 
     private static boolean containsName(List<? extends Name> names, Name name) {
         return findName(names, name) != null;
+    }
+
+    private boolean isMethodToSkip(TypeElement classElement, ExecutableElement method) {
+        String name = method.getSimpleName().toString();
+        if (METHODS_TO_SKIP.contains(name)) {
+            return true;
+        }
+        if (isKotlinClass(classElement) && name.matches("component[0-9]+")) {
+            return true;
+        }
+        return false;
+    }
+
+    private static boolean isKotlinClass(TypeElement element) {
+        for (AnnotationMirror annotationMirror : element.getAnnotationMirrors()) {
+            if (annotationMirror.getAnnotationType().toString().equals("kotlin.Metadata")) {
+                return true;
+            }
+        }
+        return false;
     }
 
     public Iterable<Name> names() {

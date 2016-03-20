@@ -103,4 +103,12 @@ public class GsonValueSerializeTest {
 
         assertEquals("{\"arg1\":1,\"arg2\":2,\"arg3\":3}", json);
     }
+
+    @Test
+    public void serializeTransient() {
+        TransientField field = new TransientField(1);
+        String json = gson.toJson(field);
+
+        assertEquals("{\"arg\":1}", json);
+    }
 }

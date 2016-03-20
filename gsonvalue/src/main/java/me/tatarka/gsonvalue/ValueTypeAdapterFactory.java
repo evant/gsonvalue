@@ -4,12 +4,9 @@ import com.google.gson.Gson;
 import com.google.gson.TypeAdapter;
 import com.google.gson.TypeAdapterFactory;
 import com.google.gson.reflect.TypeToken;
-import me.tatarka.gsonvalue.annotations.GsonBuilder;
-import me.tatarka.gsonvalue.annotations.GsonConstructor;
 
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
@@ -17,9 +14,10 @@ public class ValueTypeAdapterFactory implements TypeAdapterFactory {
     private static final ConcurrentMap<TypeToken<?>, TypeAdapter<?>> TYPE_MAP = new ConcurrentHashMap<TypeToken<?>, TypeAdapter<?>>();
 
     @Override
+    @SuppressWarnings("unchecked")
     public <T> TypeAdapter<T> create(Gson gson, TypeToken<T> type) {
         Class<? super T> rawType = type.getRawType();
-        if (!hasValueTypeAdapter(rawType)) {
+        if (!shouldLookForValueTypeAdapter(rawType)) {
             return null;
         }
 
@@ -28,9 +26,10 @@ public class ValueTypeAdapterFactory implements TypeAdapterFactory {
             return adapter;
         }
 
-        String packageName = rawType.getPackage().getName();
-        String className = rawType.getName().substring(packageName.length() + 1).replace('$', '_');
-        String typeAdapterClassName = packageName + ".ValueTypeAdapter_" + className;
+        Package p = rawType.getPackage();
+        String packageName = p != null ? p.getName() + "." : "";
+        String className = rawType.getName().substring(packageName.length()).replace('$', '_');
+        String typeAdapterClassName = packageName + "ValueTypeAdapter_" + className;
 
         try {
             Class<TypeAdapter<T>> typeAdapterClass = (Class<TypeAdapter<T>>) Class.forName(typeAdapterClassName);
@@ -39,7 +38,7 @@ public class ValueTypeAdapterFactory implements TypeAdapterFactory {
             TYPE_MAP.put(type, typeAdapter);
             return typeAdapter;
         } catch (ClassNotFoundException e) {
-            throw new RuntimeException("Could not load ValueTypeAdapter " + typeAdapterClassName, e);
+            return null;
         } catch (NoSuchMethodException e) {
             throw new RuntimeException("Could not load ValueTypeAdapter " + typeAdapterClassName, e);
         } catch (InstantiationException e) {
@@ -51,24 +50,19 @@ public class ValueTypeAdapterFactory implements TypeAdapterFactory {
         }
     }
 
-    private boolean hasValueTypeAdapter(Class<?> type) {
-        for (Constructor<?> constructor : type.getConstructors()) {
-            if (constructor.isAnnotationPresent(GsonConstructor.class)) {
-                return true;
+    private boolean shouldLookForValueTypeAdapter(Class<?> type) {
+        if (type.isPrimitive()) {
+            return false;
+        }
+        Package p = type.getPackage();
+        if (p != null) {
+            String packageName = p.getName();
+            if (packageName.startsWith("java.")
+                    || packageName.startsWith("javax.")
+                    || packageName.startsWith("android.")) {
+                return false;
             }
         }
-        for (Method method : type.getMethods()) {
-            if (method.isAnnotationPresent(GsonConstructor.class) || method.isAnnotationPresent(GsonBuilder.class)) {
-                return true;
-            }
-        }
-        for (Class<?> classes : type.getClasses()) {
-            for (Constructor<?> constructor : classes.getConstructors()) {
-                if (constructor.isAnnotationPresent(GsonBuilder.class)) {
-                    return true;
-                }
-            }
-        }
-        return false;
+        return true;
     }
 }

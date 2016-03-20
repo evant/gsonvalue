@@ -1,5 +1,6 @@
 rootProject.name = 'gsonvalue-project'
 include ':gsonvalue'
-include 'gsonvalue-processor'
-include 'gsonvalue-annotations'
+include ':gsonvalue-processor'
+include ':gsonvalue-annotations'
+include ':gsonvalue-kotlintest'
 

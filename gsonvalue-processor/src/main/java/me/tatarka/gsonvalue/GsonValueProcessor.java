@@ -10,10 +10,7 @@ import javax.lang.model.element.*;
 import javax.lang.model.type.DeclaredType;
 import javax.lang.model.type.TypeKind;
 import javax.lang.model.type.TypeMirror;
-import javax.lang.model.util.ElementFilter;
-import javax.lang.model.util.Elements;
-import javax.lang.model.util.SimpleTypeVisitor6;
-import javax.lang.model.util.Types;
+import javax.lang.model.util.*;
 import javax.tools.Diagnostic;
 import javax.tools.JavaFileObject;
 import java.io.IOException;
@@ -42,6 +39,7 @@ public class GsonValueProcessor extends AbstractProcessor {
     private Filer filer;
     private Elements elementUtils;
     private Types typeUtils;
+    private List<ClassName> seen;
 
     @Override
     public synchronized void init(ProcessingEnvironment processingEnv) {
@@ -50,6 +48,7 @@ public class GsonValueProcessor extends AbstractProcessor {
         filer = processingEnv.getFiler();
         elementUtils = processingEnv.getElementUtils();
         typeUtils = processingEnv.getTypeUtils();
+        seen = new ArrayList<>();
     }
 
     @Override
@@ -58,7 +57,10 @@ public class GsonValueProcessor extends AbstractProcessor {
             Set<? extends Element> elements = roundEnv.getElementsAnnotatedWith(annotation);
             for (Element element : elements) {
                 try {
-                    process((ExecutableElement) element);
+                    // kotlin adds extra garbage elements for some reason, just skip those
+                    if (element instanceof ExecutableElement) {
+                        process((ExecutableElement) element);
+                    }
                 } catch (IOException e) {
                     StringWriter stringWriter = new StringWriter();
                     e.printStackTrace(new PrintWriter(stringWriter));
@@ -95,6 +97,12 @@ public class GsonValueProcessor extends AbstractProcessor {
         }
 
         ClassName className = ClassName.get(classElement);
+        if (seen.contains(className)) {
+            // Don't process the same class more than once.
+            return;
+        } else {
+            seen.add(className);
+        }
         ClassName creatorName = ClassName.get((TypeElement) element.getEnclosingElement());
         ClassName typeAdapterClassName = ClassName.get(className.packageName(), PREFIX + join("_", className.simpleNames()));
 
@@ -306,7 +314,7 @@ public class GsonValueProcessor extends AbstractProcessor {
     private void addFieldsAndGetters(Names names, TypeElement classElement) {
         // getters
         for (ExecutableElement method : ElementFilter.methodsIn(classElement.getEnclosedElements())) {
-            names.addGetter(method);
+            names.addGetter(classElement, method);
         }
 
         // fields

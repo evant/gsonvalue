@@ -7,7 +7,6 @@ import javax.lang.model.element.VariableElement;
 import javax.lang.model.type.TypeKind;
 import javax.lang.model.type.TypeMirror;
 import java.util.List;
-import java.util.Set;
 
 abstract class Name<E extends Element> {
     private static final String SERIALIZED_NAME = "com.google.gson.annotations.SerializedName";
@@ -87,23 +86,33 @@ abstract class Name<E extends Element> {
         }
 
         boolean isBean() {
+            return beanPrefix() != null;
+        }
+
+        String beanPrefix() {
             if (serializeName != null) {
-                return false;
+                return null;
             }
-            String prefix = element.getReturnType().getKind() == TypeKind.BOOLEAN ? BEAN_PREFIX_BOOL : BEAN_PREFIX;
+            if (element.getReturnType().getKind() == TypeKind.BOOLEAN) {
+                String name = super.getName();
+                if (name.length() > BEAN_PREFIX_BOOL.length() && name.startsWith(BEAN_PREFIX_BOOL)) {
+                    return BEAN_PREFIX_BOOL;
+                }
+            }
             String name = super.getName();
-            return name.length() > prefix.length() && name.startsWith(prefix);
+            return name.length() > BEAN_PREFIX.length() && name.startsWith(BEAN_PREFIX) ? BEAN_PREFIX : null;
         }
 
         @Override
         public String getName() {
             String name = super.getName();
-            if (stripBean && isBean()) {
-                String prefix = element.getReturnType().getKind() == TypeKind.BOOLEAN ? BEAN_PREFIX_BOOL : BEAN_PREFIX;
-                return Character.toLowerCase(name.charAt(prefix.length())) + name.substring(prefix.length() + 1);
-            } else {
-                return name;
+            if (stripBean) {
+                String prefix = beanPrefix();
+                if (prefix != null) {
+                    return Character.toLowerCase(name.charAt(prefix.length())) + name.substring(prefix.length() + 1);
+                }
             }
+            return name;
         }
 
         @Override

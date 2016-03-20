@@ -156,4 +156,13 @@ public class GsonValueDeserializeTest {
         assertEquals(1, constructorArg.arg);
         assertTrue(constructorArg.constructorCalled);
     }
+
+    @Test
+    public void deserializeStandaloneBuilder() {
+        StandaloneBuilder.Class builder = gson.fromJson("{\"arg\":1}", StandaloneBuilder.Class.class);
+
+        assertNotNull(builder);
+        assertEquals(1, builder.arg);
+        assertTrue(builder.builderCalled);
+    }
 }

@@ -1,0 +1,25 @@
+import javax.tools.ToolProvider
+
+buildscript {
+    ext.kotlinVersion = '1.0.1'
+
+    repositories {
+        mavenCentral()
+    }
+    dependencies {
+        classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlinVersion"
+    }
+}
+
+apply plugin: 'kotlin'
+
+dependencies {
+    compile "org.jetbrains.kotlin:kotlin-stdlib:$kotlinVersion"
+    kapt project(':gsonvalue-processor')
+    compile project(':gsonvalue')
+
+    testCompile project(':gsonvalue-processor')
+    testCompile 'junit:junit:4.11'
+    testCompile 'com.google.testing.compile:compile-testing:0.8'
+    testCompile files((ToolProvider.systemToolClassLoader as URLClassLoader).URLs)
+}

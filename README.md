@@ -10,7 +10,8 @@ your class and will only use accessible fields and methods to write it out.
 
 This library is a nice companion with google's
 [AutoValue](https://github.com/google/auto/tree/master/value), but you may use it with any class you
-choose.
+choose. It's nice with kotlin's [data](https://kotlinlang.org/docs/reference/data-classes.html) 
+classes too!
 
 ## Download
 
@@ -19,12 +20,12 @@ choose.
 <dependency>
   <groupId>me.tatarka.gsonvalue</groupId>
   <artifactId>gsonvalue</artifactId>
-  <version>0.4</version>
+  <version>0.5</version>
 </dependency>
 <dependency>
   <groupId>me.tatarka.gsonvalue</groupId>
   <artifactId>gsonvalue-processor</artifactId>
-  <version>0.4</version>
+  <version>0.5</version>
   <scope>provided</scope>
 </dependency>
 ```
@@ -36,8 +37,8 @@ You may want to use a gradle plugin for easier management of apt dependencies. F
 [android-apt](https://bitbucket.org/hvisser/android-apt) for android.
 
 ```groovy
-apt 'me.tatarka.gsonvalue:gsonvalue-processor:0.4'
-compile 'me.tatarka.gsonvalue:gsonvalue:0.4'
+apt 'me.tatarka.gsonvalue:gsonvalue-processor:0.5'
+compile 'me.tatarka.gsonvalue:gsonvalue:0.5'
 ```
 
 ## Usage 
