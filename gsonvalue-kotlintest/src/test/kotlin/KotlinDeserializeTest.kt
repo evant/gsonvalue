@@ -1,5 +1,8 @@
 import com.google.gson.Gson
 import com.google.gson.GsonBuilder
+import deserialize.DataOneArgConstructor
+import deserialize.Empty
+import deserialize.OneArgConstructor
 import me.tatarka.gsonvalue.ValueTypeAdapterFactory
 import org.junit.Assert.*
 import org.junit.Before
