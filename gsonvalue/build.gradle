@@ -2,7 +2,7 @@ import javax.tools.ToolProvider
 
 dependencies {
     compile project(':gsonvalue-annotations')
-    compile 'com.google.code.gson:gson:2.6.1'
+    compile 'com.google.code.gson:gson:2.8.0'
 
     testCompile project(':gsonvalue-processor')
     testCompile project(':gsonvalue')

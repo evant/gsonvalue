@@ -643,12 +643,11 @@ public class GsonValueProcessorTest {
                         "import java.io.IOException;\n" +
                         "import java.lang.reflect.ParameterizedType;\n" +
                         "import java.util.List;\n" +
-                        "import me.tatarka.gsonvalue.internal.Types;\n" +
                         "\n" +
                         "public class ValueTypeAdapter_Test<T> extends TypeAdapter<Test<T>> {\n" +
                         "    private final TypeAdapter<List<T>> adapter_arg;\n" +
                         "    public ValueTypeAdapter_Test(Gson gson, TypeToken<Test<T>> typeToken) {\n" +
-                        "        this.adapter_arg = gson.getAdapter((TypeToken<List<T>>) TypeToken.get(Types.newParameterizedType(List.class, ((ParameterizedType)typeToken.getType()).getActualTypeArguments()[0])));\n" +
+                        "        this.adapter_arg = gson.getAdapter((TypeToken<List<T>>) TypeToken.getParameterized(List.class, ((ParameterizedType)typeToken.getType()).getActualTypeArguments()[0]));\n" +
                         "    }\n" +
                         "    @Override\n" +
                         "    public void write(JsonWriter out, Test<T> value) throws IOException {\n" +

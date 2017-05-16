@@ -31,7 +31,6 @@ public class GsonValueProcessor extends AbstractProcessor {
     private static final ClassName JSON_WRITER = ClassName.get("com.google.gson.stream", "JsonWriter");
     private static final ClassName JSON_READER = ClassName.get("com.google.gson.stream", "JsonReader");
     private static final ClassName TYPE_TOKEN = ClassName.get("com.google.gson.reflect", "TypeToken");
-    private static final ClassName TYPES = ClassName.get("me.tatarka.gsonvalue.internal", "Types");
     private static final ClassName JSON_ADAPTER = ClassName.get("com.google.gson.annotations", "JsonAdapter");
     private static final ClassName JSON_ADAPTER_METHOD = ClassName.get("me.tatarka.gsonvalue.annotations", "JsonAdapter");
 
@@ -342,7 +341,7 @@ public class GsonValueProcessor extends AbstractProcessor {
             if (typeParams.isEmpty()) {
                 block.add("new $T() {}", typeTokenType);
             } else {
-                block.add("($T) $T.get($T.newParameterizedType($T.class, ", typeTokenType, TYPE_TOKEN, TYPES, typeUtils.erasure(type));
+                block.add("($T) $T.getParameterized($T.class, ", typeTokenType, TYPE_TOKEN, typeUtils.erasure(type));
                 for (Iterator<? extends TypeMirror> iterator = typeParams.iterator(); iterator.hasNext(); ) {
                     TypeMirror typeParam = iterator.next();
                     int typeIndex = typeVariables.indexOf(TypeVariableName.get(typeParam.toString()));
@@ -351,7 +350,7 @@ public class GsonValueProcessor extends AbstractProcessor {
                         block.add(", ");
                     }
                 }
-                block.add("))");
+                block.add(")");
             }
         } else if (isGenericType(type)) {
             TypeName typeTokenType = ParameterizedTypeName.get(TYPE_TOKEN, typeName);
