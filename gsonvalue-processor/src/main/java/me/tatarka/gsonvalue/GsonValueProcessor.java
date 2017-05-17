@@ -7,17 +7,21 @@ import me.tatarka.gsonvalue.annotations.GsonConstructor;
 import javax.annotation.processing.*;
 import javax.lang.model.SourceVersion;
 import javax.lang.model.element.*;
+import javax.lang.model.element.Modifier;
 import javax.lang.model.type.DeclaredType;
 import javax.lang.model.type.TypeKind;
 import javax.lang.model.type.TypeMirror;
-import javax.lang.model.util.*;
+import javax.lang.model.util.ElementFilter;
+import javax.lang.model.util.Elements;
+import javax.lang.model.util.SimpleTypeVisitor6;
+import javax.lang.model.util.Types;
 import javax.tools.Diagnostic;
 import javax.tools.JavaFileObject;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.io.Writer;
-import java.lang.reflect.ParameterizedType;
+import java.lang.reflect.*;
 import java.util.*;
 
 @SupportedSourceVersion(SourceVersion.RELEASE_7)
@@ -55,23 +59,26 @@ public class GsonValueProcessor extends AbstractProcessor {
         for (TypeElement annotation : annotations) {
             Set<? extends Element> elements = roundEnv.getElementsAnnotatedWith(annotation);
             for (Element element : elements) {
-                try {
-                    // kotlin adds extra garbage elements for some reason, just skip those
-                    if (element instanceof ExecutableElement) {
-                        process((ExecutableElement) element);
+                if (element.getAnnotation(GsonConstructor.class) != null || element.getAnnotation(GsonBuilder.class) != null) {
+                    try {
+                        process(element);
+                    } catch (IOException e) {
+                        StringWriter stringWriter = new StringWriter();
+                        e.printStackTrace(new PrintWriter(stringWriter));
+                        messager.printMessage(Diagnostic.Kind.ERROR, "GsonValue threw an exception: " + stringWriter.toString(), element);
                     }
-                } catch (IOException e) {
-                    StringWriter stringWriter = new StringWriter();
-                    e.printStackTrace(new PrintWriter(stringWriter));
-                    messager.printMessage(Diagnostic.Kind.ERROR, "GsonValue threw an exception: " + stringWriter.toString(), element);
                 }
             }
         }
         return false;
     }
 
-    private void process(ExecutableElement element) throws IOException {
-        boolean isConstructor = element.getKind() == ElementKind.CONSTRUCTOR;
+    private void process(Element element) throws IOException {
+        ExecutableElement executableElement = findConstructorOrFactory(element);
+        if (executableElement == null) {
+            return;
+        }
+        boolean isConstructor = executableElement.getKind() == ElementKind.CONSTRUCTOR;
         boolean isBuilder = element.getAnnotation(GsonBuilder.class) != null;
 
         TypeElement classElement;
@@ -80,7 +87,7 @@ public class GsonValueProcessor extends AbstractProcessor {
             if (isConstructor) {
                 builderClass = (TypeElement) element.getEnclosingElement();
             } else {
-                builderClass = (TypeElement) typeUtils.asElement(element.getReturnType());
+                builderClass = (TypeElement) typeUtils.asElement(executableElement.getReturnType());
             }
             classElement = discoverBuiltClass(element, builderClass);
             if (classElement == null) {
@@ -89,9 +96,9 @@ public class GsonValueProcessor extends AbstractProcessor {
             }
         } else {
             if (isConstructor) {
-                classElement = (TypeElement) element.getEnclosingElement();
+                classElement = (TypeElement) executableElement.getEnclosingElement();
             } else {
-                classElement = (TypeElement) typeUtils.asElement(element.getReturnType());
+                classElement = (TypeElement) typeUtils.asElement(executableElement.getReturnType());
             }
         }
 
@@ -102,13 +109,13 @@ public class GsonValueProcessor extends AbstractProcessor {
         } else {
             seen.add(className);
         }
-        ClassName creatorName = ClassName.get((TypeElement) element.getEnclosingElement());
+        ClassName creatorName = ClassName.get((TypeElement) executableElement.getEnclosingElement());
         ClassName typeAdapterClassName = ClassName.get(className.packageName(), PREFIX + join("_", className.simpleNames()));
 
         Names names = new Names();
 
         // constructor params
-        for (VariableElement param : element.getParameters()) {
+        for (VariableElement param : executableElement.getParameters()) {
             names.addConstructorParam(param);
         }
 
@@ -121,7 +128,7 @@ public class GsonValueProcessor extends AbstractProcessor {
                 builderClass = (TypeElement) element.getEnclosingElement();
                 builderType = builderClass.asType();
             } else {
-                builderType = element.getReturnType();
+                builderType = executableElement.getReturnType();
                 builderClass = (TypeElement) typeUtils.asElement(builderType);
             }
 
@@ -273,7 +280,7 @@ public class GsonValueProcessor extends AbstractProcessor {
                 if (isConstructor) {
                     code.addStatement("return new $T($L)", classType, args);
                 } else {
-                    code.addStatement("return $T.$L($L)", creatorName, element.getSimpleName(), args);
+                    code.addStatement("return $T.$L($L)", creatorName, executableElement.getSimpleName(), args);
                 }
             }
 
@@ -307,6 +314,42 @@ public class GsonValueProcessor extends AbstractProcessor {
                     throw e;
                 }
             }
+        }
+    }
+
+    private ExecutableElement findConstructorOrFactory(Element element) {
+        if (element.getKind() == ElementKind.CONSTRUCTOR || element.getKind() == ElementKind.METHOD) {
+            return (ExecutableElement) element;
+        }
+        ExecutableElement noArgConstructor = null;
+        List<ExecutableElement> constructors = ElementFilter.constructorsIn(element.getEnclosedElements());
+        if (constructors.size() == 1) {
+            ExecutableElement constructor = constructors.get(0);
+            if (constructor.getParameters().isEmpty()) {
+                noArgConstructor = constructor;
+                constructors.remove(0);
+            }
+        }
+        for (ExecutableElement method : ElementFilter.methodsIn(element.getEnclosedElements())) {
+            Set<Modifier> modifiers = method.getModifiers();
+            if (modifiers.contains(Modifier.STATIC)
+                    && !modifiers.contains(Modifier.PRIVATE)
+                    && method.getReturnType().equals(element.asType())) {
+                constructors.add(method);
+            }
+        }
+        if (constructors.isEmpty() && noArgConstructor != null) {
+            constructors.add(noArgConstructor);
+        }
+        if (constructors.size() == 1) {
+            return constructors.get(0);
+        } else {
+            StringBuilder message = new StringBuilder("More than one constructor or factory method found. You should annotate the specific constructor of factory method instead of the class.\n");
+            for (ExecutableElement constructor : constructors) {
+                message.append(constructor).append("\n");
+            }
+            messager.printMessage(Diagnostic.Kind.ERROR, message.toString(), element);
+            return null;
         }
     }
 

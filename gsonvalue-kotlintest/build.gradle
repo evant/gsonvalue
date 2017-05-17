@@ -1,7 +1,7 @@
 import javax.tools.ToolProvider
 
 buildscript {
-    ext.kotlinVersion = '1.0.1'
+    ext.kotlinVersion = '1.1.2'
 
     repositories {
         mavenCentral()

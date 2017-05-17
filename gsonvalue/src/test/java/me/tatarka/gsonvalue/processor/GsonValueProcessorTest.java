@@ -882,4 +882,129 @@ public class GsonValueProcessorTest {
                         "    }\n" +
                         "}"));
     }
+
+    @Test
+    public void onClassSingleConstructor() {
+        ASSERT.about(javaSource()).that(JavaFileObjects.forSourceString("test.Test",
+                "package test;\n" +
+                        "\n" +
+                        "import me.tatarka.gsonvalue.annotations.GsonConstructor;\n" +
+                        "\n" +
+                        "@GsonConstructor\n" +
+                        "public class Test {\n" +
+                        "    public Test() {\n" +
+                        "    }\n" +
+                        "}"))
+                .processedWith(new GsonValueProcessor())
+                .compilesWithoutError()
+                .and().generatesSources(JavaFileObjects.forSourceString("test.ValueTypeAdapter_Test",
+                "package test;\n" +
+                        "\n" +
+                        "import com.google.gson.Gson;\n" +
+                        "import com.google.gson.TypeAdapter;\n" +
+                        "import com.google.gson.reflect.TypeToken;\n" +
+                        "import com.google.gson.stream.JsonReader;\n" +
+                        "import com.google.gson.stream.JsonWriter;\n" +
+                        "import java.io.IOException;\n" +
+                        "\n" +
+                        "public class ValueTypeAdapter_Test extends TypeAdapter<Test> {\n" +
+                        "    public ValueTypeAdapter_Test(Gson gson, TypeToken<Test> typeToken) {\n" +
+                        "    }\n" +
+                        "    @Override\n" +
+                        "    public void write(JsonWriter out, Test value) throws IOException {\n" +
+                        "        out.beginObject();\n" +
+                        "        out.endObject();\n" +
+                        "    }\n" +
+                        "\n" +
+                        "    @Override\n" +
+                        "    public Test read(JsonReader in) throws IOException {\n" +
+                        "        in.skipValue();\n" +
+                        "        return new Test();\n" +
+                        "    }\n" +
+                        "}"));
+    }
+
+    @Test
+    public void onClassSingleMethod() {
+        ASSERT.about(javaSource()).that(JavaFileObjects.forSourceString("test.Test",
+                "package test;\n" +
+                        "\n" +
+                        "import me.tatarka.gsonvalue.annotations.GsonConstructor;\n" +
+                        "\n" +
+                        "@GsonConstructor\n" +
+                        "public class Test {\n" +
+                        "    private int arg;\n" +
+                        "    public static Test create(int arg) {\n" +
+                        "        Test test = new Test();\n" +
+                        "        test.arg = arg;\n" +
+                        "        return test;\n" +
+                        "    }\n" +
+                        "    public int arg() {\n" +
+                        "        return arg;\n" +
+                        "    }\n" +
+                        "}"))
+                .processedWith(new GsonValueProcessor())
+                .compilesWithoutError()
+                .and().generatesSources(JavaFileObjects.forSourceString("test.ValueTypeAdapter_Test",
+                "package test;\n" +
+                        "\n" +
+                        "import com.google.gson.Gson;\n" +
+                        "import com.google.gson.TypeAdapter;\n" +
+                        "import com.google.gson.reflect.TypeToken;\n" +
+                        "import com.google.gson.stream.JsonReader;\n" +
+                        "import com.google.gson.stream.JsonWriter;\n" +
+                        "import java.io.IOException;\n" +
+                        "\n" +
+                        "public class ValueTypeAdapter_Test extends TypeAdapter<Test> {\n" +
+                        "    private final TypeAdapter<Integer> adapter_arg;\n" +
+                        "    public ValueTypeAdapter_Test(Gson gson, TypeToken<Test> typeToken) {\n" +
+                        "        this.adapter_arg = gson.getAdapter(int.class);\n" +
+                        "    }\n" +
+                        "    @Override\n" +
+                        "    public void write(JsonWriter out, Test value) throws IOException {\n" +
+                        "        out.beginObject();\n" +
+                        "        out.name(\"arg\");\n" +
+                        "        adapter_arg.write(out, value.arg());\n" +
+                        "        out.endObject();\n" +
+                        "    }\n" +
+                        "\n" +
+                        "    @Override\n" +
+                        "    public Test read(JsonReader in) throws IOException {\n" +
+                        "        int _arg = 0;\n" +
+                        "        in.beginObject();\n" +
+                        "        while (in.hasNext()) {\n" +
+                        "            switch (in.nextName()) {\n" +
+                        "                case \"arg\":\n" +
+                        "                    _arg = adapter_arg.read(in);\n" +
+                        "                    break;\n" +
+                        "                default:\n" +
+                        "                    in.skipValue();\n" +
+                        "            }\n" +
+                        "        }\n" +
+                        "        in.endObject();\n" +
+                        "        return Test.create(_arg);\n" +
+                        "    }\n" +
+                        "}"));
+    }
+
+    @Test
+    public void onClassSingleMultipleConstructorsFails() {
+        ASSERT.about(javaSource()).that(JavaFileObjects.forSourceString("test.Test",
+                "package test;\n" +
+                        "\n" +
+                        "import me.tatarka.gsonvalue.annotations.GsonConstructor;\n" +
+                        "\n" +
+                        "@GsonConstructor\n" +
+                        "public class Test {\n" +
+                        "    public Test() {\n" +
+                        "    }\n" +
+                        "    public Test(int arg) {\n" +
+                        "    }\n" +
+                        "}"))
+                .processedWith(new GsonValueProcessor())
+                .failsToCompile()
+                .withErrorContaining("More than one constructor or factory method found. You should annotate the specific constructor of factory method instead of the class.\n" +
+                        "  Test()\n" +
+                        "  Test(int)");
+    }
 }
