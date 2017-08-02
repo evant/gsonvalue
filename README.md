@@ -57,6 +57,7 @@ the json
 {"arg":1}
 ```
 
+### POJO
 ```java
 import me.tatarka.gsonvalue.annotations.GsonConstructor;
 
@@ -82,6 +83,25 @@ public class Bar {
     }
 }
 ```
+
+#### AutoValue
+```java
+@AutoValue
+public abstract class Foo {
+    @GsonConstructor
+    public static Foo newInstance(int arg) {
+        return new AutoValue_Foo(arg);
+    }
+    
+    public abstract int arg();
+}
+```
+
+#### Kotlin Data Class
+```kotlin
+@GsonConstructor data class Foo(val arg: Int)
+```
+
 Note that both bare getters and bean-style prefixes are supported. Like AutoValue, prefixes only
 apply if all getters follow that style.
 
@@ -90,6 +110,7 @@ apply if all getters follow that style.
 Alternatively, you can create a builder class. Annotate either the builder's constructor or
  the factory method that returns the builder with `@GsonBuilder`.
 
+#### POJO
 ```java
 import me.tatarka.gsonvalue.annotations.GsonConstructor;
 
@@ -118,6 +139,25 @@ public class Bar {
     
     public static class Builder {
         ...
+    }
+}
+```
+
+#### AutoValue
+```java
+@AutoValue
+public abstract class Foo {
+
+    @GsonBuilder
+    public static Builder builder() {
+        return new AutoValue_Foo.Builder();
+    }
+
+    @AutoValue.Builder
+    public interface Builder {        
+        Builder arg(int arg);
+        
+        Foo build();
     }
 }
 ```
