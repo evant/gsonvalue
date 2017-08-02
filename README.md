@@ -15,31 +15,38 @@ classes too!
 
 ## Download
 
+### Gradle
+
+#### Java
+You may want to use a gradle plugin for easier management of apt dependencies. For example,
+[gradle-apt-plugin](https://github.com/tbroyer/gradle-apt-plugin).
+
+```groovy
+apt 'me.tatarka.gsonvalue:gsonvalue-processor:0.6'
+compile 'me.tatarka.gsonvalue:gsonvalue:0.6'
+```
+
+#### Android
+```groovy
+annotationProcessor 'me.tatarka.gsonvalue:gsonvalue-processor:0.6'
+compile 'me.tatarka.gsonvalue:gsonvalue:0.6'
+```
+
 ### Maven
 ```xml
 <dependency>
   <groupId>me.tatarka.gsonvalue</groupId>
   <artifactId>gsonvalue</artifactId>
-  <version>0.5</version>
+  <version>0.6</version>
 </dependency>
 <dependency>
   <groupId>me.tatarka.gsonvalue</groupId>
   <artifactId>gsonvalue-processor</artifactId>
-  <version>0.5</version>
+  <version>0.6</version>
   <scope>provided</scope>
 </dependency>
 ```
 
-### Gradle
-
-You may want to use a gradle plugin for easier management of apt dependencies. For example,
-[gradle-apt-plugin](https://github.com/tbroyer/gradle-apt-plugin) for plain java or
-[android-apt](https://bitbucket.org/hvisser/android-apt) for android.
-
-```groovy
-apt 'me.tatarka.gsonvalue:gsonvalue-processor:0.5'
-compile 'me.tatarka.gsonvalue:gsonvalue:0.5'
-```
 
 ## Usage 
 
