@@ -2,26 +2,40 @@ package me.tatarka.gsonvalue;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
+import com.google.gson.TypeAdapterFactory;
 import com.google.gson.reflect.TypeToken;
+import me.tatarka.gsonvalue.model.adapterfactory.MyTypeAdapterFactory;
 import me.tatarka.gsonvalue.model.deserialize.*;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
+import org.junit.runners.Parameterized;
 
 import java.util.Arrays;
+import java.util.Collection;
 
 import static org.junit.Assert.*;
 
-@RunWith(JUnit4.class)
+@RunWith(Parameterized.class)
 public class GsonValueDeserializeTest {
 
+    @Parameterized.Parameters(name = "{0}")
+    public static Collection<Object[]> params() {
+        return Arrays.asList(new Object[]{new ValueTypeAdapterFactory()}, new Object[]{MyTypeAdapterFactory.create()});
+    }
+
+    final TypeAdapterFactory factory;
     Gson gson;
+
+    public GsonValueDeserializeTest(TypeAdapterFactory factory) {
+        this.factory = factory;
+    }
 
     @Before
     public void setup() {
         gson = new GsonBuilder()
-                .registerTypeAdapterFactory(new ValueTypeAdapterFactory())
+                .registerTypeAdapterFactory(factory)
                 .create();
     }
 

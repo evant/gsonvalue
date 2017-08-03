@@ -12,7 +12,6 @@ import javax.lang.model.type.DeclaredType;
 import javax.lang.model.type.TypeKind;
 import javax.lang.model.type.TypeMirror;
 import javax.lang.model.util.ElementFilter;
-import javax.lang.model.util.Elements;
 import javax.lang.model.util.SimpleTypeVisitor6;
 import javax.lang.model.util.Types;
 import javax.tools.Diagnostic;
@@ -26,32 +25,21 @@ import java.util.*;
 
 @SupportedSourceVersion(SourceVersion.RELEASE_7)
 public class GsonValueProcessor extends AbstractProcessor {
-    private static final String PREFIX = "ValueTypeAdapter_";
-    private static final String ARG_PREFIX = "_";
-    private static final String TYPE_ADAPTER_PREFIX = "adapter_";
-    private static final ClassName GSON = ClassName.get("com.google.gson", "Gson");
-    private static final ClassName TYPE_ADAPTER = ClassName.get("com.google.gson", "TypeAdapter");
-    private static final ClassName TYPE_ADAPTER_FACTORY = ClassName.get("com.google.gson", "TypeAdapterFactory");
-    private static final ClassName JSON_WRITER = ClassName.get("com.google.gson.stream", "JsonWriter");
-    private static final ClassName JSON_READER = ClassName.get("com.google.gson.stream", "JsonReader");
-    private static final ClassName TYPE_TOKEN = ClassName.get("com.google.gson.reflect", "TypeToken");
-    private static final ClassName JSON_ADAPTER = ClassName.get("com.google.gson.annotations", "JsonAdapter");
-    private static final ClassName JSON_ADAPTER_METHOD = ClassName.get("me.tatarka.gsonvalue.annotations", "JsonAdapter");
 
     private Messager messager;
     private Filer filer;
-    private Elements elementUtils;
     private Types typeUtils;
     private List<ClassName> seen;
+    private SearchUtils searchUtils;
 
     @Override
     public synchronized void init(ProcessingEnvironment processingEnv) {
         super.init(processingEnv);
         messager = processingEnv.getMessager();
         filer = processingEnv.getFiler();
-        elementUtils = processingEnv.getElementUtils();
         typeUtils = processingEnv.getTypeUtils();
         seen = new ArrayList<>();
+        searchUtils = new SearchUtils(messager, typeUtils);
     }
 
     @Override
@@ -74,33 +62,16 @@ public class GsonValueProcessor extends AbstractProcessor {
     }
 
     private void process(Element element) throws IOException {
-        ExecutableElement executableElement = findConstructorOrFactory(element);
+        SearchUtils.Search search = searchUtils.forElement(element);
+
+        ExecutableElement executableElement = search.findConstructorOrFactory();
         if (executableElement == null) {
             return;
         }
-        boolean isConstructor = executableElement.getKind() == ElementKind.CONSTRUCTOR;
-        boolean isBuilder = element.getAnnotation(GsonBuilder.class) != null;
 
-        TypeElement classElement;
-        if (isBuilder) {
-            TypeElement builderClass;
-            if (isConstructor) {
-                builderClass = (TypeElement) element.getEnclosingElement();
-            } else {
-                builderClass = (TypeElement) typeUtils.asElement(executableElement.getReturnType());
-            }
-            classElement = discoverBuiltClass(element, builderClass);
-            if (classElement == null) {
-                messager.printMessage(Diagnostic.Kind.ERROR, "Could not find class that builder " + builderClass + " builds. Consider providing it in the @GsonBuilder annotation.", builderClass);
-                return;
-            }
-        } else {
-            if (isConstructor) {
-                classElement = (TypeElement) executableElement.getEnclosingElement();
-            } else {
-                classElement = (TypeElement) typeUtils.asElement(executableElement.getReturnType());
-            }
-        }
+        boolean isConstructor = search.isConstructor();
+        boolean isBuilder = search.isBuilder();
+        TypeElement classElement = search.findClass();
 
         ClassName className = ClassName.get(classElement);
         if (seen.contains(className)) {
@@ -110,7 +81,7 @@ public class GsonValueProcessor extends AbstractProcessor {
             seen.add(className);
         }
         ClassName creatorName = ClassName.get((TypeElement) executableElement.getEnclosingElement());
-        ClassName typeAdapterClassName = ClassName.get(className.packageName(), PREFIX + join("_", className.simpleNames()));
+        ClassName typeAdapterClassName = ClassName.get(className.packageName(), Prefix.PREFIX + StringUtils.join("_", className.simpleNames()));
 
         Names names = new Names();
 
@@ -169,13 +140,13 @@ public class GsonValueProcessor extends AbstractProcessor {
         TypeSpec.Builder spec = TypeSpec.classBuilder(typeAdapterClassName.simpleName())
                 .addTypeVariables(typeVariables)
                 .addModifiers(Modifier.PUBLIC)
-                .superclass(ParameterizedTypeName.get(TYPE_ADAPTER, classType));
+                .superclass(ParameterizedTypeName.get(GsonClassNames.TYPE_ADAPTER, classType));
 
         // TypeAdapters
         for (Name name : names.names()) {
             TypeName typeName = TypeName.get(name.getType());
-            TypeName typeAdapterType = ParameterizedTypeName.get(TYPE_ADAPTER, typeName.box());
-            spec.addField(FieldSpec.builder(typeAdapterType, TYPE_ADAPTER_PREFIX + name.getName())
+            TypeName typeAdapterType = ParameterizedTypeName.get(GsonClassNames.TYPE_ADAPTER, typeName.box());
+            spec.addField(FieldSpec.builder(typeAdapterType, Prefix.TYPE_ADAPTER_PREFIX + name.getName())
                     .addModifiers(Modifier.PRIVATE, Modifier.FINAL)
                     .build());
         }
@@ -184,17 +155,17 @@ public class GsonValueProcessor extends AbstractProcessor {
         {
             MethodSpec.Builder constructor = MethodSpec.constructorBuilder()
                     .addModifiers(Modifier.PUBLIC)
-                    .addParameter(GSON, "gson")
-                    .addParameter(ParameterizedTypeName.get(TYPE_TOKEN, classType), "typeToken");
+                    .addParameter(GsonClassNames.GSON, "gson")
+                    .addParameter(ParameterizedTypeName.get(GsonClassNames.TYPE_TOKEN, classType), "typeToken");
             for (Name<?> name : names.names()) {
-                String typeAdapterName = TYPE_ADAPTER_PREFIX + name.getName();
+                String typeAdapterName = Prefix.TYPE_ADAPTER_PREFIX + name.getName();
                 DeclaredType typeAdapterClass = findTypeAdapterClass(name.annotations);
                 CodeBlock.Builder block = CodeBlock.builder()
                         .add("this.$L = ", typeAdapterName);
                 if (typeAdapterClass != null) {
-                    if (isInstance(typeAdapterClass, TYPE_ADAPTER.toString())) {
+                    if (isInstance(typeAdapterClass, GsonClassNames.TYPE_ADAPTER.toString())) {
                         block.add("new $T(", typeAdapterClass);
-                    } else if (isInstance(typeAdapterClass, TYPE_ADAPTER_FACTORY.toString())) {
+                    } else if (isInstance(typeAdapterClass, GsonClassNames.TYPE_ADAPTER_FACTORY.toString())) {
                         block.add("new $T().create(gson, ", typeAdapterClass);
                         appendFieldTypeToken(block, name, typeVariables, /*allowClassType=*/false);
                     } else {
@@ -216,18 +187,18 @@ public class GsonValueProcessor extends AbstractProcessor {
             code.addStatement("out.beginObject()");
             for (Name name : names.fields()) {
                 code.addStatement("out.name($S)", name.getSerializeName())
-                        .addStatement("$L.write(out, value.$L)", TYPE_ADAPTER_PREFIX + name.getName(), name.getCallableName());
+                        .addStatement("$L.write(out, value.$L)", Prefix.TYPE_ADAPTER_PREFIX + name.getName(), name.getCallableName());
             }
             for (Name name : names.getters()) {
                 code.addStatement("out.name($S)", name.getSerializeName())
-                        .addStatement("$L.write(out, value.$L())", TYPE_ADAPTER_PREFIX + name.getName(), name.getCallableName());
+                        .addStatement("$L.write(out, value.$L())", Prefix.TYPE_ADAPTER_PREFIX + name.getName(), name.getCallableName());
             }
             code.addStatement("out.endObject()");
 
             spec.addMethod(MethodSpec.methodBuilder("write")
                     .addAnnotation(Override.class)
                     .addModifiers(Modifier.PUBLIC)
-                    .addParameter(JSON_WRITER, "out")
+                    .addParameter(GsonClassNames.JSON_WRITER, "out")
                     .addParameter(classType, "value")
                     .addException(IOException.class)
                     .addCode(code.build())
@@ -241,7 +212,7 @@ public class GsonValueProcessor extends AbstractProcessor {
             boolean isEmpty = true;
             for (Name name : params) {
                 isEmpty = false;
-                code.addStatement("$T $L = $L", name.getType(), ARG_PREFIX + name.getName(), getDefaultValue(name.getType()));
+                code.addStatement("$T $L = $L", name.getType(), Prefix.ARG_PREFIX + name.getName(), getDefaultValue(name.getType()));
             }
             if (isEmpty) {
                 code.addStatement("in.skipValue()");
@@ -251,7 +222,7 @@ public class GsonValueProcessor extends AbstractProcessor {
                         .beginControlFlow("switch (in.nextName())");
                 for (Name name : params) {
                     code.add("case $S:\n", name.getSerializeName()).indent();
-                    code.addStatement("$L = $L.read(in)", ARG_PREFIX + name.getName(), TYPE_ADAPTER_PREFIX + name.getName())
+                    code.addStatement("$L = $L.read(in)", Prefix.ARG_PREFIX + name.getName(), Prefix.TYPE_ADAPTER_PREFIX + name.getName())
                             .addStatement("break").unindent();
                 }
                 code.add("default:\n").indent()
@@ -264,7 +235,7 @@ public class GsonValueProcessor extends AbstractProcessor {
             }
 
             if (isBuilder) {
-                String args = join(", ", names.constructorParams(), TO_ARGS);
+                String args = StringUtils.join(", ", names.constructorParams(), TO_ARGS);
                 if (isConstructor) {
                     code.add("return new $T($L)", builderClass, args);
                 } else {
@@ -272,11 +243,11 @@ public class GsonValueProcessor extends AbstractProcessor {
                 }
                 code.add("\n").indent();
                 for (Name name : names.builderParams()) {
-                    code.add(".$L($L)\n", name.getCallableName(), ARG_PREFIX + name.getName());
+                    code.add(".$L($L)\n", name.getCallableName(), Prefix.ARG_PREFIX + name.getName());
                 }
                 code.add(".$L();\n", buildMethod.getSimpleName()).unindent();
             } else {
-                String args = join(", ", params, TO_ARGS);
+                String args = StringUtils.join(", ", params, TO_ARGS);
                 if (isConstructor) {
                     code.addStatement("return new $T($L)", classType, args);
                 } else {
@@ -288,7 +259,7 @@ public class GsonValueProcessor extends AbstractProcessor {
                     .addAnnotation(Override.class)
                     .addModifiers(Modifier.PUBLIC)
                     .returns(classType)
-                    .addParameter(JSON_READER, "in")
+                    .addParameter(GsonClassNames.JSON_READER, "in")
                     .addException(IOException.class)
                     .addCode(code.build())
                     .build());
@@ -314,42 +285,6 @@ public class GsonValueProcessor extends AbstractProcessor {
                     throw e;
                 }
             }
-        }
-    }
-
-    private ExecutableElement findConstructorOrFactory(Element element) {
-        if (element.getKind() == ElementKind.CONSTRUCTOR || element.getKind() == ElementKind.METHOD) {
-            return (ExecutableElement) element;
-        }
-        ExecutableElement noArgConstructor = null;
-        List<ExecutableElement> constructors = ElementFilter.constructorsIn(element.getEnclosedElements());
-        if (constructors.size() == 1) {
-            ExecutableElement constructor = constructors.get(0);
-            if (constructor.getParameters().isEmpty()) {
-                noArgConstructor = constructor;
-                constructors.remove(0);
-            }
-        }
-        for (ExecutableElement method : ElementFilter.methodsIn(element.getEnclosedElements())) {
-            Set<Modifier> modifiers = method.getModifiers();
-            if (modifiers.contains(Modifier.STATIC)
-                    && !modifiers.contains(Modifier.PRIVATE)
-                    && method.getReturnType().equals(element.asType())) {
-                constructors.add(method);
-            }
-        }
-        if (constructors.isEmpty() && noArgConstructor != null) {
-            constructors.add(noArgConstructor);
-        }
-        if (constructors.size() == 1) {
-            return constructors.get(0);
-        } else {
-            StringBuilder message = new StringBuilder("More than one constructor or factory method found. You should annotate the specific constructor of factory method instead of the class.\n");
-            for (ExecutableElement constructor : constructors) {
-                message.append(constructor).append("\n");
-            }
-            messager.printMessage(Diagnostic.Kind.ERROR, message.toString(), element);
-            return null;
         }
     }
 
@@ -379,12 +314,12 @@ public class GsonValueProcessor extends AbstractProcessor {
         TypeName typeName = TypeName.get(type);
 
         if (isComplexType(type)) {
-            TypeName typeTokenType = ParameterizedTypeName.get(TYPE_TOKEN, typeName);
+            TypeName typeTokenType = ParameterizedTypeName.get(GsonClassNames.TYPE_TOKEN, typeName);
             List<? extends TypeMirror> typeParams = getGenericTypes(type);
             if (typeParams.isEmpty()) {
                 block.add("new $T() {}", typeTokenType);
             } else {
-                block.add("($T) $T.getParameterized($T.class, ", typeTokenType, TYPE_TOKEN, typeUtils.erasure(type));
+                block.add("($T) $T.getParameterized($T.class, ", typeTokenType, GsonClassNames.TYPE_TOKEN, typeUtils.erasure(type));
                 for (Iterator<? extends TypeMirror> iterator = typeParams.iterator(); iterator.hasNext(); ) {
                     TypeMirror typeParam = iterator.next();
                     int typeIndex = typeVariables.indexOf(TypeVariableName.get(typeParam.toString()));
@@ -396,10 +331,10 @@ public class GsonValueProcessor extends AbstractProcessor {
                 block.add(")");
             }
         } else if (isGenericType(type)) {
-            TypeName typeTokenType = ParameterizedTypeName.get(TYPE_TOKEN, typeName);
+            TypeName typeTokenType = ParameterizedTypeName.get(GsonClassNames.TYPE_TOKEN, typeName);
             int typeIndex = typeVariables.indexOf(TypeVariableName.get(name.getType().toString()));
             block.add("($T) $T.get((($T)typeToken.getType()).getActualTypeArguments()[$L])",
-                    typeTokenType, TYPE_TOKEN, ParameterizedType.class, typeIndex);
+                    typeTokenType, GsonClassNames.TYPE_TOKEN, ParameterizedType.class, typeIndex);
         } else {
             if (allowClassType) {
                 block.add("$T.class", typeName);
@@ -411,7 +346,7 @@ public class GsonValueProcessor extends AbstractProcessor {
 
     @Override
     public Set<String> getSupportedAnnotationTypes() {
-        return new LinkedHashSet<String>(Arrays.asList(
+        return new LinkedHashSet<>(Arrays.asList(
                 GsonConstructor.class.getCanonicalName(),
                 GsonBuilder.class.getCanonicalName()
         ));
@@ -434,109 +369,10 @@ public class GsonValueProcessor extends AbstractProcessor {
         }
     }
 
-    private TypeElement discoverBuiltClass(Element annotaded, TypeElement builderClass) {
-        // First check to see if the annotation tells us.
-        {
-            String builtClass = null;
-            for (AnnotationMirror annotationMirror : annotaded.getAnnotationMirrors()) {
-                if (annotationMirror.getAnnotationType().toString().equals(GsonBuilder.class.getName())) {
-                    if (!annotationMirror.getElementValues().isEmpty()) {
-                        AnnotationValue value = annotationMirror.getElementValues().values().iterator().next();
-                        builtClass = value.getValue().toString();
-                    }
-                }
-            }
-            if (builtClass != null) {
-                for (ExecutableElement method : ElementFilter.methodsIn(builderClass.getEnclosedElements())) {
-                    if (method.getReturnType().toString().equals(builtClass) && method.getParameters().isEmpty()) {
-                        return (TypeElement) typeUtils.asElement(method.getReturnType());
-                    }
-                }
-            }
-        }
-        // Ok, maybe there is just one possible builder method.
-        {
-            ExecutableElement candidate = null;
-            boolean foundMultipleCandidates = false;
-            boolean isCandidateReasonableBuilderMethodName = false;
-            for (ExecutableElement method : ElementFilter.methodsIn(builderClass.getEnclosedElements())) {
-                if (isPossibleBuilderMethod(method, builderClass)) {
-                    if (candidate == null) {
-                        candidate = method;
-                    } else {
-                        // Multiple possible methods, keep the one with a reasonable builder name if
-                        // possible.
-                        foundMultipleCandidates = true;
-                        isCandidateReasonableBuilderMethodName =
-                                isCandidateReasonableBuilderMethodName || isReasonableBuilderMethodName(candidate);
-                        if (isCandidateReasonableBuilderMethodName) {
-                            if (isReasonableBuilderMethodName(method)) {
-                                // both reasonable, too ambiguous.
-                                candidate = null;
-                                break;
-                            }
-                        } else {
-                            candidate = method;
-                        }
-                    }
-                }
-            }
-            if (candidate != null && (!foundMultipleCandidates || isCandidateReasonableBuilderMethodName)) {
-                return (TypeElement) typeUtils.asElement(candidate.getReturnType());
-            }
-        }
-        // Last try, check to see if the immediate parent class makes sense.
-        {
-            Element candidate = builderClass.getEnclosingElement();
-            if (candidate.getKind() == ElementKind.CLASS) {
-                for (ExecutableElement method : ElementFilter.methodsIn(builderClass.getEnclosedElements())) {
-                    if (method.getReturnType().equals(candidate.asType()) && method.getParameters().isEmpty()) {
-                        return (TypeElement) candidate;
-                    }
-                }
-            }
-        }
-        // Well, I give up.
-        return null;
-    }
-
-    /**
-     * A possible builder method has no parameters and a return type of the class we want to
-     * construct. Therefore, the return type is not going to be void, primitive, or a platform
-     * class.
-     */
-    private boolean isPossibleBuilderMethod(ExecutableElement method, TypeElement builderClass) {
-        if (!method.getParameters().isEmpty()) {
-            return false;
-        }
-        TypeMirror returnType = method.getReturnType();
-        if (returnType.getKind() == TypeKind.VOID) {
-            return false;
-        }
-        if (returnType.getKind().isPrimitive()) {
-            return false;
-        }
-        if (returnType.equals(builderClass.asType())) {
-            return false;
-        }
-        String returnTypeName = returnType.toString();
-        if (returnTypeName.startsWith("java.")
-                || returnTypeName.startsWith("javax.")
-                || returnTypeName.startsWith("android.")) {
-            return false;
-        }
-        return true;
-    }
-
-    private boolean isReasonableBuilderMethodName(ExecutableElement method) {
-        String methodName = method.getSimpleName().toString().toLowerCase(Locale.US);
-        return methodName.startsWith("build") || methodName.startsWith("create");
-    }
-
     private DeclaredType findTypeAdapterClass(List<? extends AnnotationMirror> annotations) {
         for (AnnotationMirror annotation : annotations) {
             String typeName = annotation.getAnnotationType().toString();
-            if (typeName.equals(JSON_ADAPTER.toString()) || typeName.equals(JSON_ADAPTER_METHOD.toString())) {
+            if (typeName.equals(GsonClassNames.JSON_ADAPTER.toString()) || typeName.equals(GsonClassNames.JSON_ADAPTER_METHOD.toString())) {
                 Map<? extends ExecutableElement, ? extends AnnotationValue> elements = annotation.getElementValues();
                 if (!elements.isEmpty()) {
                     AnnotationValue value = elements.values().iterator().next();
@@ -604,36 +440,10 @@ public class GsonValueProcessor extends AbstractProcessor {
         return false;
     }
 
-    private static <T> String join(String sep, Iterable<T> collection) {
-        return join(sep, collection, new ToString<T>() {
-            @Override
-            public String toString(T value) {
-                return value.toString();
-            }
-        });
-    }
-
-    private static <T> String join(String sep, Iterable<T> collection, ToString<? super T> toString) {
-        StringBuilder result = new StringBuilder();
-        Iterator<T> itr = collection.iterator();
-        while (itr.hasNext()) {
-            T next = itr.next();
-            result.append(toString.toString(next));
-            if (itr.hasNext()) {
-                result.append(sep);
-            }
-        }
-        return result.toString();
-    }
-
-    private interface ToString<T> {
-        String toString(T value);
-    }
-
-    private static final ToString<Name> TO_ARGS = new ToString<Name>() {
+    private static final StringUtils.ToString<Name> TO_ARGS = new StringUtils.ToString<Name>() {
         @Override
         public String toString(Name value) {
-            return ARG_PREFIX + value.getName();
+            return Prefix.ARG_PREFIX + value.getName();
         }
     };
 }

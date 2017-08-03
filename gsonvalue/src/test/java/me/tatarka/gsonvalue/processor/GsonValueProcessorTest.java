@@ -6,7 +6,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
 
-import static com.google.common.truth.Truth.ASSERT;
+import static com.google.common.truth.Truth.assertAbout;
 import static com.google.testing.compile.JavaSourceSubjectFactory.javaSource;
 
 @RunWith(JUnit4.class)
@@ -14,7 +14,7 @@ public class GsonValueProcessorTest {
 
     @Test
     public void emptyConstructor() {
-        ASSERT.about(javaSource()).that(JavaFileObjects.forSourceString("test.Test",
+        assertAbout(javaSource()).that(JavaFileObjects.forSourceString("test.Test",
                 "package test;\n" +
                         "\n" +
                         "import me.tatarka.gsonvalue.annotations.GsonConstructor;\n" +
@@ -55,7 +55,7 @@ public class GsonValueProcessorTest {
 
     @Test
     public void oneArgConstructor() {
-        ASSERT.about(javaSource()).that(JavaFileObjects.forSourceString("test.Test",
+        assertAbout(javaSource()).that(JavaFileObjects.forSourceString("test.Test",
                 "package test;\n" +
                         "\n" +
                         "import me.tatarka.gsonvalue.annotations.GsonConstructor;\n" +
@@ -117,7 +117,7 @@ public class GsonValueProcessorTest {
 
     @Test
     public void oneArgMethod() {
-        ASSERT.about(javaSource()).that(JavaFileObjects.forSourceString("test.Test",
+        assertAbout(javaSource()).that(JavaFileObjects.forSourceString("test.Test",
                 "package test;\n" +
                         "\n" +
                         "import me.tatarka.gsonvalue.annotations.GsonConstructor;\n" +
@@ -180,7 +180,7 @@ public class GsonValueProcessorTest {
 
     @Test
     public void oneArgBuilderConstructor() {
-        ASSERT.about(javaSource()).that(JavaFileObjects.forSourceString("test.Test",
+        assertAbout(javaSource()).that(JavaFileObjects.forSourceString("test.Test",
                 "package test;\n" +
                         "\n" +
                         "import me.tatarka.gsonvalue.annotations.GsonBuilder;\n" +
@@ -257,7 +257,7 @@ public class GsonValueProcessorTest {
 
     @Test
     public void oneArgBuilderMethod() {
-        ASSERT.about(javaSource()).that(JavaFileObjects.forSourceString("test.Test",
+        assertAbout(javaSource()).that(JavaFileObjects.forSourceString("test.Test",
                 "package test;\n" +
                         "\n" +
                         "import me.tatarka.gsonvalue.annotations.GsonBuilder;\n" +
@@ -334,7 +334,7 @@ public class GsonValueProcessorTest {
     }
 
     public void oneRequiredArgBuilderConstructor() {
-        ASSERT.about(javaSource()).that(JavaFileObjects.forSourceString("test.Test",
+        assertAbout(javaSource()).that(JavaFileObjects.forSourceString("test.Test",
                 "package test;\n" +
                         "\n" +
                         "import me.tatarka.gsonvalue.annotations.GsonBuilder;\n" +
@@ -406,7 +406,7 @@ public class GsonValueProcessorTest {
 
     @Test
     public void oneRequiredArgBuilderMethod() {
-        ASSERT.about(javaSource()).that(JavaFileObjects.forSourceString("test.Test",
+        assertAbout(javaSource()).that(JavaFileObjects.forSourceString("test.Test",
                 "package test;\n" +
                         "\n" +
                         "import com.google.gson.annotations.SerializedName;\n" +
@@ -486,7 +486,7 @@ public class GsonValueProcessorTest {
 
     @Test
     public void oneComplexArgConstructor() {
-        ASSERT.about(javaSource()).that(JavaFileObjects.forSourceString("test.Test",
+        assertAbout(javaSource()).that(JavaFileObjects.forSourceString("test.Test",
                 "package test;\n" +
                         "\n" +
                         "import me.tatarka.gsonvalue.annotations.GsonConstructor;\n" +
@@ -550,7 +550,7 @@ public class GsonValueProcessorTest {
 
     @Test
     public void genericConstructor() {
-        ASSERT.about(javaSource()).that(JavaFileObjects.forSourceString("test.Test",
+        assertAbout(javaSource()).that(JavaFileObjects.forSourceString("test.Test",
                 "package test;\n" +
                         "\n" +
                         "import me.tatarka.gsonvalue.annotations.GsonConstructor;\n" +
@@ -613,7 +613,7 @@ public class GsonValueProcessorTest {
 
     @Test
     public void complexGenericConstructor() {
-        ASSERT.about(javaSource()).that(JavaFileObjects.forSourceString("test.Test",
+        assertAbout(javaSource()).that(JavaFileObjects.forSourceString("test.Test",
                 "package test;\n" +
                         "\n" +
                         "import me.tatarka.gsonvalue.annotations.GsonConstructor;\n" +
@@ -678,7 +678,7 @@ public class GsonValueProcessorTest {
 
     @Test
     public void abstractNamedField() {
-        ASSERT.about(javaSource()).that(JavaFileObjects.forSourceString("test.Test",
+        assertAbout(javaSource()).that(JavaFileObjects.forSourceString("test.Test",
                 "package test;\n" +
                         "\n" +
                         "import com.google.gson.annotations.SerializedName;\n" +
@@ -753,7 +753,7 @@ public class GsonValueProcessorTest {
 
     @Test
     public void adapterAnnotation() {
-        ASSERT.about(javaSource()).that(JavaFileObjects.forSourceString("test.Test",
+        assertAbout(javaSource()).that(JavaFileObjects.forSourceString("test.Test",
                 "package test;\n" +
                         "\n" +
                         "import com.google.gson.annotations.JsonAdapter;\n" +
@@ -819,7 +819,7 @@ public class GsonValueProcessorTest {
 
     @Test
     public void adapterFactoryAnnotation() {
-        ASSERT.about(javaSource()).that(JavaFileObjects.forSourceString("test.Test",
+        assertAbout(javaSource()).that(JavaFileObjects.forSourceString("test.Test",
                 "package test;\n" +
                         "\n" +
                         "import com.google.gson.annotations.JsonAdapter;\n" +
@@ -885,7 +885,7 @@ public class GsonValueProcessorTest {
 
     @Test
     public void onClassSingleConstructor() {
-        ASSERT.about(javaSource()).that(JavaFileObjects.forSourceString("test.Test",
+        assertAbout(javaSource()).that(JavaFileObjects.forSourceString("test.Test",
                 "package test;\n" +
                         "\n" +
                         "import me.tatarka.gsonvalue.annotations.GsonConstructor;\n" +
@@ -926,7 +926,7 @@ public class GsonValueProcessorTest {
 
     @Test
     public void onClassSingleMethod() {
-        ASSERT.about(javaSource()).that(JavaFileObjects.forSourceString("test.Test",
+        assertAbout(javaSource()).that(JavaFileObjects.forSourceString("test.Test",
                 "package test;\n" +
                         "\n" +
                         "import me.tatarka.gsonvalue.annotations.GsonConstructor;\n" +
@@ -989,7 +989,7 @@ public class GsonValueProcessorTest {
 
     @Test
     public void onClassSingleMultipleConstructorsFails() {
-        ASSERT.about(javaSource()).that(JavaFileObjects.forSourceString("test.Test",
+        assertAbout(javaSource()).that(JavaFileObjects.forSourceString("test.Test",
                 "package test;\n" +
                         "\n" +
                         "import me.tatarka.gsonvalue.annotations.GsonConstructor;\n" +
