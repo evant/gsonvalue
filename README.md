@@ -168,7 +168,27 @@ it is ambiguous. In that case, you can provide the built class in the annotation
 
 ### Gson
 
-Finally register `ValueTypeAdapterFactory` to you gson builder.
+Create an abstract `TypeAdapterFactory` class an annotate it.
+```java
+import com.google.gson.TypeAdapterFactory;
+import me.tatarka.gsonvalue.annotations.GsonValueTypeAdapterFactory;
+
+@GsonValueTypeAdapterFactory
+public abstract class MyTypeAdapterFactory implements TypeAdapterFactory {
+    public static MyTypeAdapterFactory create() {
+        return new GsonValue_MyTypeAdapterFactory();
+    }
+}
+```
+
+Then register it to your gson builder.
+```java
+gson = new GsonBuilder()
+        .registerTypeAdapterFactory(MyTypeAdapterFactory.create())
+        .create();
+```
+
+Alternatively, you can use the old reflection-based `ValueTypeAdapterFactory`.
 ```java
 gson = new GsonBuilder()
         .registerTypeAdapterFactory(new ValueTypeAdapterFactory())
