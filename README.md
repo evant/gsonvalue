@@ -22,14 +22,14 @@ You may want to use a gradle plugin for easier management of apt dependencies. F
 [gradle-apt-plugin](https://github.com/tbroyer/gradle-apt-plugin).
 
 ```groovy
-apt 'me.tatarka.gsonvalue:gsonvalue-processor:0.6'
-compile 'me.tatarka.gsonvalue:gsonvalue:0.6'
+apt 'me.tatarka.gsonvalue:gsonvalue-processor:0.7'
+compile 'me.tatarka.gsonvalue:gsonvalue:0.7'
 ```
 
 #### Android
 ```groovy
-annotationProcessor 'me.tatarka.gsonvalue:gsonvalue-processor:0.6'
-compile 'me.tatarka.gsonvalue:gsonvalue:0.6'
+annotationProcessor 'me.tatarka.gsonvalue:gsonvalue-processor:0.7'
+compile 'me.tatarka.gsonvalue:gsonvalue:0.7'
 ```
 
 ### Maven
@@ -37,12 +37,12 @@ compile 'me.tatarka.gsonvalue:gsonvalue:0.6'
 <dependency>
   <groupId>me.tatarka.gsonvalue</groupId>
   <artifactId>gsonvalue</artifactId>
-  <version>0.6</version>
+  <version>0.7</version>
 </dependency>
 <dependency>
   <groupId>me.tatarka.gsonvalue</groupId>
   <artifactId>gsonvalue-processor</artifactId>
-  <version>0.6</version>
+  <version>0.7</version>
   <scope>provided</scope>
 </dependency>
 ```
