@@ -14,6 +14,7 @@ import org.junit.runners.Parameterized;
 
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.List;
 
 import static org.junit.Assert.*;
 
@@ -37,6 +38,13 @@ public class GsonValueDeserializeTest {
         gson = new GsonBuilder()
                 .registerTypeAdapterFactory(factory)
                 .create();
+    }
+
+    @Test
+    public void deserializeWithNull() {
+        List<ConstructorArg> list = gson.fromJson("[null]", new TypeToken<List<ConstructorArg>>() {}.getType());
+        assertEquals(1, list.size());
+        assertNull(list.get(0));
     }
 
     @Test
