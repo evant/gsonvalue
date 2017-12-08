@@ -34,6 +34,7 @@ public class GsonValueSerializeTest {
     @Before
     public void setup() {
         gson = new GsonBuilder()
+                .serializeNulls()
                 .registerTypeAdapterFactory(factory)
                 .create();
     }
@@ -44,6 +45,13 @@ public class GsonValueSerializeTest {
         String json = gson.toJson(empty);
 
         assertEquals("{}", json);
+    }
+
+    @Test
+    public void serializeWithNull() {
+        NullableField obj = new NullableField(null);
+        String json = gson.toJson(obj);
+        assertEquals("{\"arg\":null}", json);
     }
 
     @Test

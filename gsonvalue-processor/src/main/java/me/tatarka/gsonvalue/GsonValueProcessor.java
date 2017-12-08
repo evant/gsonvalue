@@ -184,6 +184,11 @@ public class GsonValueProcessor extends AbstractProcessor {
         // @Override public void write(JsonWriter out, T value) throws IOException
         {
             CodeBlock.Builder code = CodeBlock.builder();
+            code.beginControlFlow("if (value == null)")
+                    .addStatement("out.nullValue()")
+                    .addStatement("return")
+                    .endControlFlow();
+
             code.addStatement("out.beginObject()");
             for (Name name : names.fields()) {
                 code.addStatement("out.name($S)", name.getSerializeName())
@@ -207,8 +212,13 @@ public class GsonValueProcessor extends AbstractProcessor {
 
         // @Override public T read(JsonReader in) throws IOException
         {
-            Iterable<Name> params = names.params();
             CodeBlock.Builder code = CodeBlock.builder();
+            code.beginControlFlow("if (in.peek() == $T.NULL)", GsonClassNames.JSON_TOKEN)
+                    .addStatement("in.nextNull()")
+                    .addStatement("return null")
+                    .endControlFlow();
+
+            Iterable<Name> params = names.params();
             boolean isEmpty = true;
             for (Name name : params) {
                 isEmpty = false;

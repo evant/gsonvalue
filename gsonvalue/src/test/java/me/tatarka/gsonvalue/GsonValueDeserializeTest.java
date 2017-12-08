@@ -40,6 +40,12 @@ public class GsonValueDeserializeTest {
     }
 
     @Test
+    public void deserializeWithNull() {
+        NullableField result = gson.fromJson("{\"arg\":null}", NullableField.class);
+        assertNull(result.arg);
+    }
+
+    @Test
     public void deserializeEmpty() {
         Empty empty = gson.fromJson("{}", Empty.class);
 
