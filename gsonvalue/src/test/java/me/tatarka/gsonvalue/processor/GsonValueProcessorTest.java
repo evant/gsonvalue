@@ -26,6 +26,12 @@ public class GsonValueProcessorTest {
             "            return null;\n" +
             "        }\n";
 
+    private static final String WRITE_NULL_CHECK =
+            "        if (value == null) {\n" +
+            "          out.nullValue();\n" +
+            "          return;\n" +
+            "        }\n";
+
     @Test
     public void emptyConstructor() {
         assertAbout(javaSource()).that(JavaFileObjects.forSourceString("test.Test",
@@ -50,6 +56,7 @@ public class GsonValueProcessorTest {
                         "    }\n" +
                         "    @Override\n" +
                         "    public void write(JsonWriter out, Test value) throws IOException {\n" +
+                        WRITE_NULL_CHECK +
                         "        out.beginObject();\n" +
                         "        out.endObject();\n" +
                         "    }\n" +
@@ -95,6 +102,7 @@ public class GsonValueProcessorTest {
                         "    }\n" +
                         "    @Override\n" +
                         "    public void write(JsonWriter out, Test value) throws IOException {\n" +
+                        WRITE_NULL_CHECK +
                         "        out.beginObject();\n" +
                         "        out.name(\"arg\");\n" +
                         "        adapter_arg.write(out, value.arg());\n" +
@@ -154,6 +162,7 @@ public class GsonValueProcessorTest {
                         "    }\n" +
                         "    @Override\n" +
                         "    public void write(JsonWriter out, Test value) throws IOException {\n" +
+                        WRITE_NULL_CHECK +
                         "        out.beginObject();\n" +
                         "        out.name(\"arg\");\n" +
                         "        adapter_arg.write(out, value.arg());\n" +
@@ -225,6 +234,7 @@ public class GsonValueProcessorTest {
                         "    }\n" +
                         "    @Override\n" +
                         "    public void write(JsonWriter out, Test value) throws IOException {\n" +
+                        WRITE_NULL_CHECK +
                         "        out.beginObject();\n" +
                         "        out.name(\"arg\");\n" +
                         "        adapter_arg.write(out, value.arg());\n" +
@@ -299,6 +309,7 @@ public class GsonValueProcessorTest {
                         "    }\n" +
                         "    @Override\n" +
                         "    public void write(JsonWriter out, Test value) throws IOException {\n" +
+                        WRITE_NULL_CHECK +
                         "        out.beginObject();\n" +
                         "        out.name(\"arg\");\n" +
                         "        adapter_arg.write(out, value.arg());\n" +
@@ -367,6 +378,7 @@ public class GsonValueProcessorTest {
                         "    }\n" +
                         "    @Override\n" +
                         "    public void write(JsonWriter out, Test value) throws IOException {\n" +
+                        WRITE_NULL_CHECK +
                         "        out.beginObject();\n" +
                         "        out.name(\"arg\");\n" +
                         "        adapter_arg.write(out, value.arg());\n" +
@@ -443,6 +455,7 @@ public class GsonValueProcessorTest {
                         "    }\n" +
                         "    @Override\n" +
                         "    public void write(JsonWriter out, Test value) throws IOException {\n" +
+                        WRITE_NULL_CHECK +
                         "        out.beginObject();\n" +
                         "        out.name(\"named\");\n" +
                         "        adapter_arg.write(out, value.arg());\n" +
@@ -504,6 +517,7 @@ public class GsonValueProcessorTest {
                         "    }\n" +
                         "    @Override\n" +
                         "    public void write(JsonWriter out, Test value) throws IOException {\n" +
+                        WRITE_NULL_CHECK +
                         "        out.beginObject();\n" +
                         "        out.name(\"arg\");\n" +
                         "        adapter_arg.write(out, value.arg());\n" +
@@ -563,6 +577,7 @@ public class GsonValueProcessorTest {
                         "    }\n" +
                         "    @Override\n" +
                         "    public void write(JsonWriter out, Test<T> value) throws IOException {\n" +
+                        WRITE_NULL_CHECK +
                         "        out.beginObject();\n" +
                         "        out.name(\"arg\");\n" +
                         "        adapter_arg.write(out, value.arg());\n" +
@@ -624,6 +639,7 @@ public class GsonValueProcessorTest {
                         "    }\n" +
                         "    @Override\n" +
                         "    public void write(JsonWriter out, Test<T> value) throws IOException {\n" +
+                        WRITE_NULL_CHECK +
                         "        out.beginObject();\n" +
                         "        out.name(\"arg\");\n" +
                         "        adapter_arg.write(out, value.arg());\n" +
@@ -695,6 +711,7 @@ public class GsonValueProcessorTest {
                         "    }\n" +
                         "    @Override\n" +
                         "    public void write(JsonWriter out, Test value) throws IOException {\n" +
+                        WRITE_NULL_CHECK +
                         "        out.beginObject();\n" +
                         "        out.name(\"named\");\n" +
                         "        adapter_arg.write(out, value.arg());\n" +
@@ -757,6 +774,7 @@ public class GsonValueProcessorTest {
                         "    }\n" +
                         "    @Override\n" +
                         "    public void write(JsonWriter out, Test value) throws IOException {\n" +
+                        WRITE_NULL_CHECK +
                         "        out.beginObject();\n" +
                         "        out.name(\"arg\");\n" +
                         "        adapter_arg.write(out, value.arg());\n" +
@@ -819,6 +837,7 @@ public class GsonValueProcessorTest {
                         "    }\n" +
                         "    @Override\n" +
                         "    public void write(JsonWriter out, Test value) throws IOException {\n" +
+                        WRITE_NULL_CHECK +
                         "        out.beginObject();\n" +
                         "        out.name(\"arg\");\n" +
                         "        adapter_arg.write(out, value.arg());\n" +
@@ -869,6 +888,7 @@ public class GsonValueProcessorTest {
                         "    }\n" +
                         "    @Override\n" +
                         "    public void write(JsonWriter out, Test value) throws IOException {\n" +
+                        WRITE_NULL_CHECK +
                         "        out.beginObject();\n" +
                         "        out.endObject();\n" +
                         "    }\n" +
@@ -915,6 +935,7 @@ public class GsonValueProcessorTest {
                         "    }\n" +
                         "    @Override\n" +
                         "    public void write(JsonWriter out, Test value) throws IOException {\n" +
+                        WRITE_NULL_CHECK +
                         "        out.beginObject();\n" +
                         "        out.name(\"arg\");\n" +
                         "        adapter_arg.write(out, value.arg());\n" +
