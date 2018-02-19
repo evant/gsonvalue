@@ -22,14 +22,14 @@ You may want to use a gradle plugin for easier management of apt dependencies. F
 [gradle-apt-plugin](https://github.com/tbroyer/gradle-apt-plugin).
 
 ```groovy
-apt 'me.tatarka.gsonvalue:gsonvalue-processor:0.7'
-compile 'me.tatarka.gsonvalue:gsonvalue:0.7'
+apt 'me.tatarka.gsonvalue:gsonvalue-processor:0.8'
+compile 'me.tatarka.gsonvalue:gsonvalue:0.8'
 ```
 
 #### Android
 ```groovy
-annotationProcessor 'me.tatarka.gsonvalue:gsonvalue-processor:0.7'
-compile 'me.tatarka.gsonvalue:gsonvalue:0.7'
+annotationProcessor 'me.tatarka.gsonvalue:gsonvalue-processor:0.8'
+compile 'me.tatarka.gsonvalue:gsonvalue:0.8'
 ```
 
 ### Maven
@@ -37,12 +37,12 @@ compile 'me.tatarka.gsonvalue:gsonvalue:0.7'
 <dependency>
   <groupId>me.tatarka.gsonvalue</groupId>
   <artifactId>gsonvalue</artifactId>
-  <version>0.7</version>
+  <version>0.8</version>
 </dependency>
 <dependency>
   <groupId>me.tatarka.gsonvalue</groupId>
   <artifactId>gsonvalue-processor</artifactId>
-  <version>0.7</version>
+  <version>0.8</version>
   <scope>provided</scope>
 </dependency>
 ```
@@ -162,10 +162,6 @@ public abstract class Foo {
 }
 ```
 
-In most cases the class being built will be discovered from the builder. However, it's possible that
-it is ambiguous. In that case, you can provide the built class in the annotation
-`@GsonBuilder(Foo.class)`.
-
 ### Gson
 
 Create an abstract `TypeAdapterFactory` class an annotate it.
@@ -185,13 +181,6 @@ Then register it to your gson builder.
 ```java
 gson = new GsonBuilder()
         .registerTypeAdapterFactory(MyTypeAdapterFactory.create())
-        .create();
-```
-
-Alternatively, you can use the old reflection-based `ValueTypeAdapterFactory`.
-```java
-gson = new GsonBuilder()
-        .registerTypeAdapterFactory(new ValueTypeAdapterFactory())
         .create();
 ```
 

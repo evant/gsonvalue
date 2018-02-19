@@ -978,8 +978,10 @@ public class GsonValueProcessorTest {
                         "}"))
                 .processedWith(new GsonValueProcessor())
                 .failsToCompile()
-                .withErrorContaining("More than one constructor or factory method found. You should annotate the specific constructor of factory method instead of the class.\n" +
-                        "  Test()\n" +
-                        "  Test(int)");
+                .withErrorContaining("More than one constructor or factory method found.")
+                .and()
+                .withErrorContaining("  Test()")
+                .and()
+                .withErrorContaining("  Test(int)");
     }
 }

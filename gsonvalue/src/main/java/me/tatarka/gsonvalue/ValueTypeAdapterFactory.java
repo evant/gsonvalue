@@ -10,6 +10,11 @@ import java.lang.reflect.InvocationTargetException;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
+/**
+ * @deprecated Create an abstract factory implementing
+ * {@link me.tatarka.gsonvalue.annotations.GsonValueTypeAdapterFactory} instead.
+ */
+@Deprecated
 public class ValueTypeAdapterFactory implements TypeAdapterFactory {
     private static final ConcurrentMap<TypeToken<?>, TypeAdapter<?>> TYPE_MAP = new ConcurrentHashMap<TypeToken<?>, TypeAdapter<?>>();
 

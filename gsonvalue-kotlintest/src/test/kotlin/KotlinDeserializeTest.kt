@@ -3,7 +3,6 @@ import com.google.gson.GsonBuilder
 import deserialize.DataOneArgConstructor
 import deserialize.Empty
 import deserialize.OneArgConstructor
-import me.tatarka.gsonvalue.ValueTypeAdapterFactory
 import org.junit.Assert.*
 import org.junit.Before
 import org.junit.Test
@@ -18,8 +17,8 @@ class KotlinDeserializeTest {
     @Before
     fun setup() {
         gson = GsonBuilder()
-                .registerTypeAdapterFactory(ValueTypeAdapterFactory())
-                .create()
+            .registerTypeAdapterFactory(ValueTypeAdapterFactory.create())
+            .create()
     }
 
     @Test

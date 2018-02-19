@@ -1,6 +1,5 @@
 import com.google.gson.Gson
 import com.google.gson.GsonBuilder
-import me.tatarka.gsonvalue.ValueTypeAdapterFactory
 import org.junit.Assert.assertEquals
 import org.junit.Before
 import org.junit.Test
@@ -16,8 +15,8 @@ class KotlinSerializeTest {
     @Before
     fun setup() {
         gson = GsonBuilder()
-                .registerTypeAdapterFactory(ValueTypeAdapterFactory())
-                .create()
+            .registerTypeAdapterFactory(ValueTypeAdapterFactory.create())
+            .create()
     }
 
     @Test

@@ -1,9 +1,14 @@
 package me.tatarka.gsonvalue;
 
 import com.squareup.javapoet.*;
+
+import org.omg.CORBA.portable.ValueFactory;
+
 import me.tatarka.gsonvalue.annotations.GsonBuilder;
 import me.tatarka.gsonvalue.annotations.GsonConstructor;
 import me.tatarka.gsonvalue.annotations.GsonValueTypeAdapterFactory;
+import me.tatarka.valueprocessor.ElementException;
+import me.tatarka.valueprocessor.ValueCreator;
 
 import javax.annotation.processing.*;
 import javax.lang.model.SourceVersion;
@@ -14,6 +19,7 @@ import javax.lang.model.type.TypeMirror;
 import javax.lang.model.util.Elements;
 import javax.lang.model.util.Types;
 import javax.tools.Diagnostic;
+
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.LinkedHashSet;
@@ -25,7 +31,7 @@ public class GsonValueTypeAdapterFactoryProcessor extends AbstractProcessor {
     private Messager messager;
     private Types typeUtils;
     private Elements elementUtils;
-    private SearchUtils searchUtils;
+    private ValueCreator valueCreator;
 
     @Override
     public synchronized void init(ProcessingEnvironment env) {
@@ -33,25 +39,25 @@ public class GsonValueTypeAdapterFactoryProcessor extends AbstractProcessor {
         messager = env.getMessager();
         typeUtils = env.getTypeUtils();
         elementUtils = env.getElementUtils();
-        searchUtils = new SearchUtils(messager, env.getTypeUtils());
+        valueCreator = new ValueCreator(env);
     }
 
     @Override
     public boolean process(Set<? extends TypeElement> annotations, RoundEnvironment roundEnv) {
         Set<TypeElement> elements = new LinkedHashSet<>();
         for (Element element : roundEnv.getElementsAnnotatedWith(GsonConstructor.class)) {
-            TypeElement aClass = searchUtils.forElement(element).findClass();
-            if (aClass == null) {
-                continue;
+            try {
+                elements.add(valueCreator.from(element, false).getElement());
+            } catch (ElementException e) {
+                // Ignore, should be reported by other processor
             }
-            elements.add(aClass);
         }
         for (Element element : roundEnv.getElementsAnnotatedWith(GsonBuilder.class)) {
-            TypeElement aClass = searchUtils.forElement(element).findClass();
-            if (aClass == null) {
-                continue;
+            try {
+                elements.add(valueCreator.from(element, true).getElement());
+            } catch (ElementException e) {
+                // Ignore, should be reported by other processor
             }
-            elements.add(aClass);
         }
         Set<? extends Element> adaptorFactories = roundEnv.getElementsAnnotatedWith(GsonValueTypeAdapterFactory.class);
         for (Element adapter : adaptorFactories) {
@@ -102,6 +108,7 @@ public class GsonValueTypeAdapterFactoryProcessor extends AbstractProcessor {
         } else {
             MethodSpec.Builder builder = create.beginControlFlow("switch (type.getRawType().getName())");
             for (TypeElement element : elements) {
+                factory.addOriginatingElement(element);
                 ClassName elementClassName = ClassName.get(element);
                 ClassName typeAdapterClassName = ClassName.get(elementClassName.packageName(), Prefix.PREFIX + StringUtils.join("_", elementClassName.simpleNames()));
                 builder.addStatement("case $S:\n$>return ($T) new $T(gson, ($T) type)$<", classLiteralName(elementClassName), ParameterizedTypeName.get(GsonClassNames.TYPE_ADAPTER, TypeVariableName.get("T")), typeAdapterClassName, ParameterizedTypeName.get(GsonClassNames.TYPE_TOKEN, elementClassName));

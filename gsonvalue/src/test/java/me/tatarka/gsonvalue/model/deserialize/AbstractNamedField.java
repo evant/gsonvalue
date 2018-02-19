@@ -1,6 +1,7 @@
 package me.tatarka.gsonvalue.model.deserialize;
 
 import com.google.gson.annotations.SerializedName;
+
 import me.tatarka.gsonvalue.annotations.GsonConstructor;
 
 public abstract class AbstractNamedField {

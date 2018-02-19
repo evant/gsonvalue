@@ -1,36 +1,67 @@
 package me.tatarka.gsonvalue;
 
-import com.squareup.javapoet.*;
-import me.tatarka.gsonvalue.annotations.GsonBuilder;
-import me.tatarka.gsonvalue.annotations.GsonConstructor;
+import com.squareup.javapoet.ClassName;
+import com.squareup.javapoet.CodeBlock;
+import com.squareup.javapoet.FieldSpec;
+import com.squareup.javapoet.JavaFile;
+import com.squareup.javapoet.MethodSpec;
+import com.squareup.javapoet.ParameterizedTypeName;
+import com.squareup.javapoet.TypeName;
+import com.squareup.javapoet.TypeSpec;
+import com.squareup.javapoet.TypeVariableName;
 
-import javax.annotation.processing.*;
-import javax.lang.model.SourceVersion;
-import javax.lang.model.element.*;
-import javax.lang.model.element.Modifier;
-import javax.lang.model.type.DeclaredType;
-import javax.lang.model.type.TypeKind;
-import javax.lang.model.type.TypeMirror;
-import javax.lang.model.util.ElementFilter;
-import javax.lang.model.util.SimpleTypeVisitor6;
-import javax.lang.model.util.Types;
-import javax.tools.Diagnostic;
-import javax.tools.JavaFileObject;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.StringWriter;
-import java.io.Writer;
-import java.lang.reflect.*;
-import java.util.*;
+import java.lang.reflect.ParameterizedType;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.Iterator;
+import java.util.LinkedHashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+
+import javax.annotation.processing.AbstractProcessor;
+import javax.annotation.processing.Filer;
+import javax.annotation.processing.Messager;
+import javax.annotation.processing.ProcessingEnvironment;
+import javax.annotation.processing.RoundEnvironment;
+import javax.annotation.processing.SupportedSourceVersion;
+import javax.lang.model.SourceVersion;
+import javax.lang.model.element.AnnotationMirror;
+import javax.lang.model.element.AnnotationValue;
+import javax.lang.model.element.Element;
+import javax.lang.model.element.ExecutableElement;
+import javax.lang.model.element.Modifier;
+import javax.lang.model.element.TypeElement;
+import javax.lang.model.type.DeclaredType;
+import javax.lang.model.type.TypeKind;
+import javax.lang.model.type.TypeMirror;
+import javax.lang.model.util.SimpleTypeVisitor6;
+import javax.lang.model.util.Types;
+import javax.tools.Diagnostic;
+
+import me.tatarka.gsonvalue.annotations.GsonBuilder;
+import me.tatarka.gsonvalue.annotations.GsonConstructor;
+import me.tatarka.valueprocessor.ConstructionSource;
+import me.tatarka.valueprocessor.ElementException;
+import me.tatarka.valueprocessor.Properties;
+import me.tatarka.valueprocessor.Property;
+import me.tatarka.valueprocessor.Value;
+import me.tatarka.valueprocessor.ValueCreator;
 
 @SupportedSourceVersion(SourceVersion.RELEASE_7)
 public class GsonValueProcessor extends AbstractProcessor {
+
+    private static final String SERIALIZED_NAME = "com.google.gson.annotations.SerializedName";
 
     private Messager messager;
     private Filer filer;
     private Types typeUtils;
     private List<ClassName> seen;
-    private SearchUtils searchUtils;
+    private ValueCreator valueCreator;
 
     @Override
     public synchronized void init(ProcessingEnvironment processingEnv) {
@@ -39,7 +70,7 @@ public class GsonValueProcessor extends AbstractProcessor {
         filer = processingEnv.getFiler();
         typeUtils = processingEnv.getTypeUtils();
         seen = new ArrayList<>();
-        searchUtils = new SearchUtils(messager, typeUtils);
+        valueCreator = new ValueCreator(processingEnv);
     }
 
     @Override
@@ -49,7 +80,7 @@ public class GsonValueProcessor extends AbstractProcessor {
             for (Element element : elements) {
                 if (element.getAnnotation(GsonConstructor.class) != null || element.getAnnotation(GsonBuilder.class) != null) {
                     try {
-                        process(element);
+                        process(element, element.getAnnotation(GsonBuilder.class) != null);
                     } catch (IOException e) {
                         StringWriter stringWriter = new StringWriter();
                         e.printStackTrace(new PrintWriter(stringWriter));
@@ -61,266 +92,182 @@ public class GsonValueProcessor extends AbstractProcessor {
         return false;
     }
 
-    private void process(Element element) throws IOException {
-        SearchUtils.Search search = searchUtils.forElement(element);
+    private void process(Element element, boolean isBuilder) throws IOException {
+        try {
+            Value value = valueCreator.from(element, isBuilder);
+            ConstructionSource constructionSource = value.getConstructionSource();
+            Properties properties = value.getProperties();
 
-        ExecutableElement executableElement = search.findConstructorOrFactory();
-        if (executableElement == null) {
-            return;
-        }
-
-        boolean isConstructor = search.isConstructor();
-        boolean isBuilder = search.isBuilder();
-        TypeElement classElement = search.findClass();
-
-        ClassName className = ClassName.get(classElement);
-        if (seen.contains(className)) {
-            // Don't process the same class more than once.
-            return;
-        } else {
-            seen.add(className);
-        }
-        ClassName creatorName = ClassName.get((TypeElement) executableElement.getEnclosingElement());
-        ClassName typeAdapterClassName = ClassName.get(className.packageName(), Prefix.PREFIX + StringUtils.join("_", className.simpleNames()));
-
-        Names names = new Names();
-
-        // constructor params
-        for (VariableElement param : executableElement.getParameters()) {
-            names.addConstructorParam(param);
-        }
-
-        // builder params
-        TypeElement builderClass = null;
-        ExecutableElement buildMethod = null;
-        if (isBuilder) {
-            TypeMirror builderType;
-            if (isConstructor) {
-                builderClass = (TypeElement) element.getEnclosingElement();
-                builderType = builderClass.asType();
-            } else {
-                builderType = executableElement.getReturnType();
-                builderClass = (TypeElement) typeUtils.asElement(builderType);
-            }
-
-            if (builderClass == null) {
-                messager.printMessage(Diagnostic.Kind.ERROR, "Cannot find builder " + builderType + " in class " + classElement, element);
+            TypeElement classElement = value.getElement();
+            ClassName className = ClassName.get(classElement);
+            if (seen.contains(className)) {
+                // Don't process the same class more than once.
                 return;
+            } else {
+                seen.add(className);
             }
-            for (ExecutableElement method : ElementFilter.methodsIn(builderClass.getEnclosedElements())) {
-                names.addBuilderParam(builderType, method);
-                if (method.getReturnType().equals(classElement.asType()) && method.getParameters().isEmpty()) {
-                    buildMethod = method;
+
+            ClassName creatorName = ClassName.get((TypeElement) constructionSource.getConstructionElement().getEnclosingElement());
+            ClassName typeAdapterClassName = ClassName.get(className.packageName(), Prefix.PREFIX + StringUtils.join("_", className.simpleNames()));
+            TypeName classType = TypeName.get(classElement.asType());
+            List<TypeVariableName> typeVariables = new ArrayList<>();
+            if (classType instanceof ParameterizedTypeName) {
+                ParameterizedTypeName type = (ParameterizedTypeName) classType;
+                for (TypeName typeArgument : type.typeArguments) {
+                    typeVariables.add(TypeVariableName.get(typeArgument.toString()));
                 }
             }
-            if (buildMethod == null) {
-                messager.printMessage(Diagnostic.Kind.ERROR, "Missing build method on " + builderType + " in class " + classElement, builderClass);
-                return;
-            }
-        }
 
-        addFieldsAndGetters(names, classElement);
-
-        try {
-            names.finish();
-        } catch (ElementException e) {
-            e.printMessage(messager);
-            return;
-        }
-
-        TypeName classType = TypeName.get(classElement.asType());
-        List<TypeVariableName> typeVariables = new ArrayList<>();
-        if (classType instanceof ParameterizedTypeName) {
-            ParameterizedTypeName type = (ParameterizedTypeName) classType;
-            for (TypeName typeArgument : type.typeArguments) {
-                typeVariables.add(TypeVariableName.get(typeArgument.toString()));
-            }
-        }
-
-        TypeSpec.Builder spec = TypeSpec.classBuilder(typeAdapterClassName.simpleName())
-                .addTypeVariables(typeVariables)
-                .addModifiers(Modifier.PUBLIC)
-                .superclass(ParameterizedTypeName.get(GsonClassNames.TYPE_ADAPTER, classType));
-
-        // TypeAdapters
-        for (Name name : names.names()) {
-            TypeName typeName = TypeName.get(name.getType());
-            TypeName typeAdapterType = ParameterizedTypeName.get(GsonClassNames.TYPE_ADAPTER, typeName.box());
-            spec.addField(FieldSpec.builder(typeAdapterType, Prefix.TYPE_ADAPTER_PREFIX + name.getName())
-                    .addModifiers(Modifier.PRIVATE, Modifier.FINAL)
-                    .build());
-        }
-
-        // Test_TypeAdapter(Gson gson, TypeToken<Test> typeToken)
-        {
-            MethodSpec.Builder constructor = MethodSpec.constructorBuilder()
+            TypeSpec.Builder spec = TypeSpec.classBuilder(typeAdapterClassName.simpleName())
+                    .addOriginatingElement(value.getElement())
+                    .addTypeVariables(typeVariables)
                     .addModifiers(Modifier.PUBLIC)
-                    .addParameter(GsonClassNames.GSON, "gson")
-                    .addParameter(ParameterizedTypeName.get(GsonClassNames.TYPE_TOKEN, classType), "typeToken");
-            for (Name<?> name : names.names()) {
-                String typeAdapterName = Prefix.TYPE_ADAPTER_PREFIX + name.getName();
-                DeclaredType typeAdapterClass = findTypeAdapterClass(name.annotations);
-                CodeBlock.Builder block = CodeBlock.builder()
-                        .add("this.$L = ", typeAdapterName);
-                if (typeAdapterClass != null) {
-                    if (isInstance(typeAdapterClass, GsonClassNames.TYPE_ADAPTER.toString())) {
-                        block.add("new $T(", typeAdapterClass);
-                    } else if (isInstance(typeAdapterClass, GsonClassNames.TYPE_ADAPTER_FACTORY.toString())) {
-                        block.add("new $T().create(gson, ", typeAdapterClass);
-                        appendFieldTypeToken(block, name, typeVariables, /*allowClassType=*/false);
+                    .superclass(ParameterizedTypeName.get(GsonClassNames.TYPE_ADAPTER, classType));
+
+            // TypeAdapters
+            for (Property<?> property : properties) {
+                TypeName typeName = TypeName.get(property.getType());
+                TypeName typeAdapterType = ParameterizedTypeName.get(GsonClassNames.TYPE_ADAPTER, typeName.box());
+                spec.addField(FieldSpec.builder(typeAdapterType, Prefix.TYPE_ADAPTER_PREFIX + property.getName())
+                        .addModifiers(Modifier.PRIVATE, Modifier.FINAL)
+                        .build());
+            }
+
+            // Test_TypeAdapter(Gson gson, TypeToken<Test> typeToken)
+            {
+                MethodSpec.Builder constructor = MethodSpec.constructorBuilder()
+                        .addModifiers(Modifier.PUBLIC)
+                        .addParameter(GsonClassNames.GSON, "gson")
+                        .addParameter(ParameterizedTypeName.get(GsonClassNames.TYPE_TOKEN, classType), "typeToken");
+                for (Property<?> property : properties) {
+                    String typeAdapterName = Prefix.TYPE_ADAPTER_PREFIX + property.getName();
+                    DeclaredType typeAdapterClass = findTypeAdapterClass(property.getAnnotations());
+                    CodeBlock.Builder block = CodeBlock.builder()
+                            .add("this.$L = ", typeAdapterName);
+                    if (typeAdapterClass != null) {
+                        if (isInstance(typeAdapterClass, GsonClassNames.TYPE_ADAPTER.toString())) {
+                            block.add("new $T(", typeAdapterClass);
+                        } else if (isInstance(typeAdapterClass, GsonClassNames.TYPE_ADAPTER_FACTORY.toString())) {
+                            block.add("new $T().create(gson, ", typeAdapterClass);
+                            appendFieldTypeToken(block, property, typeVariables, /*allowClassType=*/false);
+                        } else {
+                            messager.printMessage(Diagnostic.Kind.ERROR, "@JsonAdapter value must by TypeAdapter or TypeAdapterFactory reference.", property.getElement());
+                        }
                     } else {
-                        messager.printMessage(Diagnostic.Kind.ERROR, "@JsonAdapter value must by TypeAdapter or TypeAdapterFactory reference.", name.element);
+                        block.add("gson.getAdapter(");
+                        appendFieldTypeToken(block, property, typeVariables, /*allowClassType=*/true);
                     }
+                    block.add(");\n");
+                    constructor.addCode(block.build());
+                }
+                spec.addMethod(constructor.build());
+            }
+
+            // @Override public void write(JsonWriter out, T value) throws IOException
+            {
+                CodeBlock.Builder code = CodeBlock.builder();
+                code.beginControlFlow("if (value == null)")
+                        .addStatement("out.nullValue()")
+                        .addStatement("return")
+                        .endControlFlow();
+
+                code.addStatement("out.beginObject()");
+                for (Property.Field field : properties.getFields()) {
+                    code.addStatement("out.name($S)", getSerializedName(field))
+                            .addStatement("$L.write(out, value.$L)", Prefix.TYPE_ADAPTER_PREFIX + field.getName(), field.getCallableName());
+                }
+                for (Property.Getter getter : properties.getGetters()) {
+                    code.addStatement("out.name($S)", getSerializedName(getter))
+                            .addStatement("$L.write(out, value.$L())", Prefix.TYPE_ADAPTER_PREFIX + getter.getName(), getter.getCallableName());
+                }
+                code.addStatement("out.endObject()");
+
+                spec.addMethod(MethodSpec.methodBuilder("write")
+                        .addAnnotation(Override.class)
+                        .addModifiers(Modifier.PUBLIC)
+                        .addParameter(GsonClassNames.JSON_WRITER, "out")
+                        .addParameter(classType, "value")
+                        .addException(IOException.class)
+                        .addCode(code.build())
+                        .build());
+            }
+
+            // @Override public T read(JsonReader in) throws IOException
+            {
+                CodeBlock.Builder code = CodeBlock.builder();
+                code.beginControlFlow("if (in.peek() == $T.NULL)", GsonClassNames.JSON_TOKEN)
+                        .addStatement("in.nextNull()")
+                        .addStatement("return null")
+                        .endControlFlow();
+
+                Iterable<Property.Param> params = properties.getParams();
+                boolean isEmpty = true;
+                for (Property.Param param : params) {
+                    isEmpty = false;
+                    code.addStatement("$T $L = $L", param.getType(), Prefix.ARG_PREFIX + param.getName(), getDefaultValue(param.getType()));
+                }
+                if (isEmpty) {
+                    code.addStatement("in.skipValue()");
                 } else {
-                    block.add("gson.getAdapter(");
-                    appendFieldTypeToken(block, name, typeVariables, /*allowClassType=*/true);
+                    code.addStatement("in.beginObject()")
+                            .beginControlFlow("while (in.hasNext())")
+                            .beginControlFlow("switch (in.nextName())");
+                    for (Property.Param param : params) {
+                        code.add("case $S:\n", getSerializedName(param)).indent();
+                        code.addStatement("$L = $L.read(in)", Prefix.ARG_PREFIX + param.getName(), Prefix.TYPE_ADAPTER_PREFIX + param.getName())
+                                .addStatement("break").unindent();
+                    }
+                    code.add("default:\n").indent()
+                            .addStatement("in.skipValue()")
+                            .unindent();
+
+                    code.endControlFlow()
+                            .endControlFlow()
+                            .addStatement("in.endObject()");
                 }
-                block.add(");\n");
-                constructor.addCode(block.build());
-            }
-            spec.addMethod(constructor.build());
-        }
 
-        // @Override public void write(JsonWriter out, T value) throws IOException
-        {
-            CodeBlock.Builder code = CodeBlock.builder();
-            code.beginControlFlow("if (value == null)")
-                    .addStatement("out.nullValue()")
-                    .addStatement("return")
-                    .endControlFlow();
-
-            code.addStatement("out.beginObject()");
-            for (Name name : names.fields()) {
-                code.addStatement("out.name($S)", name.getSerializeName())
-                        .addStatement("$L.write(out, value.$L)", Prefix.TYPE_ADAPTER_PREFIX + name.getName(), name.getCallableName());
-            }
-            for (Name name : names.getters()) {
-                code.addStatement("out.name($S)", name.getSerializeName())
-                        .addStatement("$L.write(out, value.$L())", Prefix.TYPE_ADAPTER_PREFIX + name.getName(), name.getCallableName());
-            }
-            code.addStatement("out.endObject()");
-
-            spec.addMethod(MethodSpec.methodBuilder("write")
-                    .addAnnotation(Override.class)
-                    .addModifiers(Modifier.PUBLIC)
-                    .addParameter(GsonClassNames.JSON_WRITER, "out")
-                    .addParameter(classType, "value")
-                    .addException(IOException.class)
-                    .addCode(code.build())
-                    .build());
-        }
-
-        // @Override public T read(JsonReader in) throws IOException
-        {
-            CodeBlock.Builder code = CodeBlock.builder();
-            code.beginControlFlow("if (in.peek() == $T.NULL)", GsonClassNames.JSON_TOKEN)
-                    .addStatement("in.nextNull()")
-                    .addStatement("return null")
-                    .endControlFlow();
-
-            Iterable<Name> params = names.params();
-            boolean isEmpty = true;
-            for (Name name : params) {
-                isEmpty = false;
-                code.addStatement("$T $L = $L", name.getType(), Prefix.ARG_PREFIX + name.getName(), getDefaultValue(name.getType()));
-            }
-            if (isEmpty) {
-                code.addStatement("in.skipValue()");
-            } else {
-                code.addStatement("in.beginObject()")
-                        .beginControlFlow("while (in.hasNext())")
-                        .beginControlFlow("switch (in.nextName())");
-                for (Name name : params) {
-                    code.add("case $S:\n", name.getSerializeName()).indent();
-                    code.addStatement("$L = $L.read(in)", Prefix.ARG_PREFIX + name.getName(), Prefix.TYPE_ADAPTER_PREFIX + name.getName())
-                            .addStatement("break").unindent();
-                }
-                code.add("default:\n").indent()
-                        .addStatement("in.skipValue()")
-                        .unindent();
-
-                code.endControlFlow()
-                        .endControlFlow()
-                        .addStatement("in.endObject()");
-            }
-
-            if (isBuilder) {
-                String args = StringUtils.join(", ", names.constructorParams(), TO_ARGS);
-                if (isConstructor) {
-                    code.add("return new $T($L)", builderClass, args);
+                if (constructionSource instanceof ConstructionSource.Builder) {
+                    String args = StringUtils.join(", ", properties.getConstructorParams(), TO_ARGS);
+                    if (constructionSource.isConstructor()) {
+                        code.add("return new $T($L)", ((ConstructionSource.Builder) constructionSource).getBuilderClass(), args);
+                    } else {
+                        code.add("return $T.$L($L)", creatorName, element.getSimpleName(), args);
+                    }
+                    code.add("\n").indent();
+                    for (Property.BuilderParam param : properties.getBuilderParams()) {
+                        code.add(".$L($L)\n", param.getCallableName(), Prefix.ARG_PREFIX + param.getName());
+                    }
+                    code.add(".$L();\n", ((ConstructionSource.Builder) constructionSource).getBuildMethod().getSimpleName()).unindent();
                 } else {
-                    code.add("return $T.$L($L)", creatorName, element.getSimpleName(), args);
+                    String args = StringUtils.join(", ", params, TO_ARGS);
+                    if (constructionSource.isConstructor()) {
+                        code.addStatement("return new $T($L)", classType, args);
+                    } else {
+                        code.addStatement("return $T.$L($L)", creatorName, constructionSource.getConstructionElement().getSimpleName(), args);
+                    }
                 }
-                code.add("\n").indent();
-                for (Name name : names.builderParams()) {
-                    code.add(".$L($L)\n", name.getCallableName(), Prefix.ARG_PREFIX + name.getName());
-                }
-                code.add(".$L();\n", buildMethod.getSimpleName()).unindent();
-            } else {
-                String args = StringUtils.join(", ", params, TO_ARGS);
-                if (isConstructor) {
-                    code.addStatement("return new $T($L)", classType, args);
-                } else {
-                    code.addStatement("return $T.$L($L)", creatorName, executableElement.getSimpleName(), args);
-                }
+
+                spec.addMethod(MethodSpec.methodBuilder("read")
+                        .addAnnotation(Override.class)
+                        .addModifiers(Modifier.PUBLIC)
+                        .returns(classType)
+                        .addParameter(GsonClassNames.JSON_READER, "in")
+                        .addException(IOException.class)
+                        .addCode(code.build())
+                        .build());
             }
 
-            spec.addMethod(MethodSpec.methodBuilder("read")
-                    .addAnnotation(Override.class)
-                    .addModifiers(Modifier.PUBLIC)
-                    .returns(classType)
-                    .addParameter(GsonClassNames.JSON_READER, "in")
-                    .addException(IOException.class)
-                    .addCode(code.build())
-                    .build());
-        }
-
-        Writer writer = null;
-        boolean threw = true;
-        try {
-            JavaFileObject jfo = filer.createSourceFile(typeAdapterClassName.toString());
-            writer = jfo.openWriter();
             JavaFile javaFile = JavaFile.builder(className.packageName(), spec.build())
                     .skipJavaLangImports(true)
                     .build();
-            javaFile.writeTo(writer);
-            threw = false;
-        } finally {
-            try {
-                if (writer != null) {
-                    writer.close();
-                }
-            } catch (IOException e) {
-                if (!threw) {
-                    throw e;
-                }
-            }
+            javaFile.writeTo(filer);
+        } catch (ElementException e) {
+            e.printMessage(messager);
         }
     }
 
-    private void addFieldsAndGetters(Names names, TypeElement classElement) {
-        // getters
-        for (ExecutableElement method : ElementFilter.methodsIn(classElement.getEnclosedElements())) {
-            names.addGetter(classElement, method);
-        }
-
-        // fields
-        for (VariableElement field : ElementFilter.fieldsIn(classElement.getEnclosedElements())) {
-            names.addField(field);
-        }
-
-        for (TypeMirror superInterface : classElement.getInterfaces()) {
-            addFieldsAndGetters(names, (TypeElement) typeUtils.asElement(superInterface));
-        }
-
-        TypeMirror superclass = classElement.getSuperclass();
-        if (superclass.getKind() != TypeKind.NONE && !superclass.toString().equals("java.lang.Object")) {
-            addFieldsAndGetters(names, (TypeElement) typeUtils.asElement(classElement.getSuperclass()));
-        }
-    }
-
-    private void appendFieldTypeToken(CodeBlock.Builder block, Name<?> name, List<TypeVariableName> typeVariables, boolean allowClassType) {
-        TypeMirror type = name.getType();
+    private void appendFieldTypeToken(CodeBlock.Builder block, Property<?> property, List<TypeVariableName> typeVariables, boolean allowClassType) {
+        TypeMirror type = property.getType();
         TypeName typeName = TypeName.get(type);
 
         if (isComplexType(type)) {
@@ -342,7 +289,7 @@ public class GsonValueProcessor extends AbstractProcessor {
             }
         } else if (isGenericType(type)) {
             TypeName typeTokenType = ParameterizedTypeName.get(GsonClassNames.TYPE_TOKEN, typeName);
-            int typeIndex = typeVariables.indexOf(TypeVariableName.get(name.getType().toString()));
+            int typeIndex = typeVariables.indexOf(TypeVariableName.get(property.getType().toString()));
             block.add("($T) $T.get((($T)typeToken.getType()).getActualTypeArguments()[$L])",
                     typeTokenType, GsonClassNames.TYPE_TOKEN, ParameterizedType.class, typeIndex);
         } else {
@@ -377,6 +324,15 @@ public class GsonValueProcessor extends AbstractProcessor {
             default:
                 return "null";
         }
+    }
+
+    private static String getSerializedName(Property<?> property) {
+        for (AnnotationMirror annotationMirror : property.getAnnotations()) {
+            if (annotationMirror.getAnnotationType().asElement().toString().equals(SERIALIZED_NAME)) {
+                return (String) annotationMirror.getElementValues().values().iterator().next().getValue();
+            }
+        }
+        return property.getName();
     }
 
     private DeclaredType findTypeAdapterClass(List<? extends AnnotationMirror> annotations) {
@@ -450,9 +406,9 @@ public class GsonValueProcessor extends AbstractProcessor {
         return false;
     }
 
-    private static final StringUtils.ToString<Name> TO_ARGS = new StringUtils.ToString<Name>() {
+    private static final StringUtils.ToString<Property<?>> TO_ARGS = new StringUtils.ToString<Property<?>>() {
         @Override
-        public String toString(Name value) {
+        public String toString(Property<?> value) {
             return Prefix.ARG_PREFIX + value.getName();
         }
     };
