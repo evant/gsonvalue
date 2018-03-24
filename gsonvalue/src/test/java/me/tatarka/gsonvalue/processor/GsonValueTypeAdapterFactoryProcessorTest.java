@@ -1,13 +1,15 @@
 package me.tatarka.gsonvalue.processor;
 
 import com.google.testing.compile.JavaFileObjects;
-import me.tatarka.gsonvalue.GsonValueProcessor;
-import me.tatarka.gsonvalue.GsonValueTypeAdapterFactoryProcessor;
+
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
 
 import java.util.Arrays;
+
+import me.tatarka.gsonvalue.GsonValueProcessor;
+import me.tatarka.gsonvalue.GsonValueTypeAdapterFactoryProcessor;
 
 import static com.google.common.truth.Truth.assertAbout;
 import static com.google.testing.compile.JavaSourceSubjectFactory.javaSource;
@@ -88,12 +90,12 @@ public class GsonValueTypeAdapterFactoryProcessorTest {
                         "    @Override\n" +
                         "    @SuppressWarnings(\"unchecked\")\n" +
                         "    public <T> TypeAdapter<T> create(Gson gson, TypeToken<T> type) {\n" +
-                        "        switch (type.getRawType().getName()) {\n" +
-                        "            case \"test.Test\":\n" +
-                        "                return (TypeAdapter<T>) new ValueTypeAdapter_Test(gson, (TypeToken<Test>) type);\n" +
-                        "            default:\n" +
-                        "                return null;\n" +
-                        "        }\n" +
+                        "        Class<?> clazz = type.getRawType();\n" +
+                        "        if (clazz == test.Test.class) {\n" +
+                        "           return (TypeAdapter<T>) new ValueTypeAdapter_Test(gson, (TypeToken<Test>) type);\n" +
+                        "        } else {" +
+                        "           return null;\n" +
+                        "        }"+
                         "    }\n" +
                         "}"));
     }

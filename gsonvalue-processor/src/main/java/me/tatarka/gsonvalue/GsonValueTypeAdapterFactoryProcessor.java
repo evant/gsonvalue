@@ -1,16 +1,24 @@
 package me.tatarka.gsonvalue;
 
-import com.squareup.javapoet.*;
+import com.squareup.javapoet.AnnotationSpec;
+import com.squareup.javapoet.ClassName;
+import com.squareup.javapoet.JavaFile;
+import com.squareup.javapoet.MethodSpec;
+import com.squareup.javapoet.ParameterSpec;
+import com.squareup.javapoet.ParameterizedTypeName;
+import com.squareup.javapoet.TypeSpec;
+import com.squareup.javapoet.TypeVariableName;
 
-import org.omg.CORBA.portable.ValueFactory;
+import java.io.IOException;
+import java.util.Arrays;
+import java.util.LinkedHashSet;
+import java.util.Set;
 
-import me.tatarka.gsonvalue.annotations.GsonBuilder;
-import me.tatarka.gsonvalue.annotations.GsonConstructor;
-import me.tatarka.gsonvalue.annotations.GsonValueTypeAdapterFactory;
-import me.tatarka.valueprocessor.ElementException;
-import me.tatarka.valueprocessor.ValueCreator;
-
-import javax.annotation.processing.*;
+import javax.annotation.processing.AbstractProcessor;
+import javax.annotation.processing.Messager;
+import javax.annotation.processing.ProcessingEnvironment;
+import javax.annotation.processing.RoundEnvironment;
+import javax.annotation.processing.SupportedSourceVersion;
 import javax.lang.model.SourceVersion;
 import javax.lang.model.element.Element;
 import javax.lang.model.element.Modifier;
@@ -20,10 +28,11 @@ import javax.lang.model.util.Elements;
 import javax.lang.model.util.Types;
 import javax.tools.Diagnostic;
 
-import java.io.IOException;
-import java.util.Arrays;
-import java.util.LinkedHashSet;
-import java.util.Set;
+import me.tatarka.gsonvalue.annotations.GsonBuilder;
+import me.tatarka.gsonvalue.annotations.GsonConstructor;
+import me.tatarka.gsonvalue.annotations.GsonValueTypeAdapterFactory;
+import me.tatarka.valueprocessor.ElementException;
+import me.tatarka.valueprocessor.ValueCreator;
 
 @SupportedSourceVersion(SourceVersion.RELEASE_7)
 public class GsonValueTypeAdapterFactoryProcessor extends AbstractProcessor {
@@ -106,14 +115,32 @@ public class GsonValueTypeAdapterFactoryProcessor extends AbstractProcessor {
         if (elements.isEmpty()) {
             create.addStatement("return null");
         } else {
-            MethodSpec.Builder builder = create.beginControlFlow("switch (type.getRawType().getName())");
+            MethodSpec.Builder builder = create.addStatement("Class<?> clazz = type.getRawType()");
+            {
+                TypeElement first = elements.iterator().next();
+                factory.addOriginatingElement(first);
+                ClassName elementClassName = ClassName.get(first);
+                ClassName typeAdapterClassName = ClassName.get(elementClassName.packageName(),
+                        Prefix.PREFIX + StringUtils.join("_", elementClassName.simpleNames()));
+
+                builder.beginControlFlow("if (clazz == $N)", classLiteralName(elementClassName)).
+                        addStatement("return ($T) new $T(gson, ($T) type)",
+                                ParameterizedTypeName.get(GsonClassNames.TYPE_ADAPTER, TypeVariableName.get("T")),
+                                typeAdapterClassName,
+                                ParameterizedTypeName.get(GsonClassNames.TYPE_TOKEN, elementClassName));
+                elements.remove(first);
+            }
             for (TypeElement element : elements) {
                 factory.addOriginatingElement(element);
                 ClassName elementClassName = ClassName.get(element);
                 ClassName typeAdapterClassName = ClassName.get(elementClassName.packageName(), Prefix.PREFIX + StringUtils.join("_", elementClassName.simpleNames()));
-                builder.addStatement("case $S:\n$>return ($T) new $T(gson, ($T) type)$<", classLiteralName(elementClassName), ParameterizedTypeName.get(GsonClassNames.TYPE_ADAPTER, TypeVariableName.get("T")), typeAdapterClassName, ParameterizedTypeName.get(GsonClassNames.TYPE_TOKEN, elementClassName));
+                builder.nextControlFlow("else if (clazz == $N)", classLiteralName(elementClassName)).
+                        addStatement("return ($T) new $T(gson, ($T) type)",
+                                ParameterizedTypeName.get(GsonClassNames.TYPE_ADAPTER, TypeVariableName.get("T")),
+                                typeAdapterClassName, ParameterizedTypeName.get(GsonClassNames.TYPE_TOKEN, elementClassName));
             }
-            builder.addStatement("default:\n$>return null$<");
+            builder.nextControlFlow("else")
+                    .addStatement("return null");
             builder.endControlFlow();
         }
 
@@ -122,7 +149,7 @@ public class GsonValueTypeAdapterFactoryProcessor extends AbstractProcessor {
     }
 
     private String classLiteralName(ClassName className) {
-        return className.packageName() + "." + StringUtils.join("$", className.simpleNames());
+        return className.packageName() + "." + StringUtils.join(".", className.simpleNames()) + ".class";
     }
 
     private boolean implementsTypeAdapterFactory(TypeElement type) {
