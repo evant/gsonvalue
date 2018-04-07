@@ -172,13 +172,17 @@ public class GsonValueProcessor extends AbstractProcessor {
                         .endControlFlow();
 
                 code.addStatement("out.beginObject()");
-                for (Property.Field field : properties.getFields()) {
-                    code.addStatement("out.name($S)", getSerializedName(field))
-                            .addStatement("$L.write(out, value.$L)", Prefix.TYPE_ADAPTER_PREFIX + field.getName(), field.getCallableName());
-                }
-                for (Property.Getter getter : properties.getGetters()) {
-                    code.addStatement("out.name($S)", getSerializedName(getter))
-                            .addStatement("$L.write(out, value.$L())", Prefix.TYPE_ADAPTER_PREFIX + getter.getName(), getter.getCallableName());
+                for (Property.Accessor<?> accessor: properties.getAccessors()) {
+                    code.addStatement("out.name($S)", getSerializedName(accessor));
+                    String writeStatement;
+                    if (accessor instanceof Property.Field) {
+                        writeStatement = "$L.write(out, value.$L)";
+                    } else if (accessor instanceof Property.Getter) {
+                        writeStatement = "$L.write(out, value.$L())";
+                    } else {
+                        throw new AssertionError("unknown accessor: " + accessor);
+                    }
+                    code.addStatement(writeStatement, Prefix.TYPE_ADAPTER_PREFIX + accessor.getName(), accessor.getCallableName());
                 }
                 code.addStatement("out.endObject()");
 

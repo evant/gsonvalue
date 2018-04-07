@@ -4,10 +4,7 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.TypeAdapterFactory;
 import me.tatarka.gsonvalue.model.adapterfactory.MyTypeAdapterFactory;
-import me.tatarka.gsonvalue.model.roundtrip.Empty;
-import me.tatarka.gsonvalue.model.roundtrip.PublicField;
-import me.tatarka.gsonvalue.model.roundtrip.WithJsonAdapterField;
-import me.tatarka.gsonvalue.model.roundtrip.WithJsonAdapterMethod;
+import me.tatarka.gsonvalue.model.roundtrip.*;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -69,6 +66,15 @@ public class GsonValueRoundTripTest {
     public void roundTripJsonAdapterMethod() {
         String json = "{\"arg\":\"1\"}";
         String newJson = gson.toJson(gson.fromJson(json, WithJsonAdapterMethod.class));
+
+        assertEquals(json, newJson);
+    }
+
+
+    @Test
+    public void deserializeSubclass() {
+        String json = "{\"foo\":\"one\",\"bar\":\"two\"}";
+        String newJson = gson.toJson(gson.fromJson(json, Subclass.Child.class));
 
         assertEquals(json, newJson);
     }
