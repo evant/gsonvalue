@@ -1,12 +1,12 @@
 package me.tatarka.gsonvalue.model.deserialize;
 
-import me.tatarka.gsonvalue.annotations.GsonBuilder;
+import me.tatarka.gsonvalue.annotations.GsonValue;
 
+@GsonValue
 public class BuilderMethodRequiredArg {
     public transient boolean builderCalled;
     public int arg;
 
-    @GsonBuilder
     public static Builder builder(int arg) {
         Builder builder = new Builder();
         builder.arg = arg;

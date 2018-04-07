@@ -28,11 +28,8 @@ import javax.lang.model.util.Elements;
 import javax.lang.model.util.Types;
 import javax.tools.Diagnostic;
 
-import me.tatarka.gsonvalue.annotations.GsonBuilder;
-import me.tatarka.gsonvalue.annotations.GsonConstructor;
+import me.tatarka.gsonvalue.annotations.GsonValue;
 import me.tatarka.gsonvalue.annotations.GsonValueTypeAdapterFactory;
-import me.tatarka.valueprocessor.ElementException;
-import me.tatarka.valueprocessor.ValueCreator;
 
 @SupportedSourceVersion(SourceVersion.RELEASE_7)
 public class GsonValueTypeAdapterFactoryProcessor extends AbstractProcessor {
@@ -40,7 +37,6 @@ public class GsonValueTypeAdapterFactoryProcessor extends AbstractProcessor {
     private Messager messager;
     private Types typeUtils;
     private Elements elementUtils;
-    private ValueCreator valueCreator;
 
     @Override
     public synchronized void init(ProcessingEnvironment env) {
@@ -48,24 +44,14 @@ public class GsonValueTypeAdapterFactoryProcessor extends AbstractProcessor {
         messager = env.getMessager();
         typeUtils = env.getTypeUtils();
         elementUtils = env.getElementUtils();
-        valueCreator = new ValueCreator(env);
     }
 
     @Override
     public boolean process(Set<? extends TypeElement> annotations, RoundEnvironment roundEnv) {
         Set<TypeElement> elements = new LinkedHashSet<>();
-        for (Element element : roundEnv.getElementsAnnotatedWith(GsonConstructor.class)) {
-            try {
-                elements.add(valueCreator.from(element, false).getElement());
-            } catch (ElementException e) {
-                // Ignore, should be reported by other processor
-            }
-        }
-        for (Element element : roundEnv.getElementsAnnotatedWith(GsonBuilder.class)) {
-            try {
-                elements.add(valueCreator.from(element, true).getElement());
-            } catch (ElementException e) {
-                // Ignore, should be reported by other processor
+        for (Element element : roundEnv.getElementsAnnotatedWith(GsonValue.class)) {
+            if (element instanceof TypeElement) {
+                elements.add((TypeElement) element);
             }
         }
         Set<? extends Element> adaptorFactories = roundEnv.getElementsAnnotatedWith(GsonValueTypeAdapterFactory.class);
@@ -166,8 +152,7 @@ public class GsonValueTypeAdapterFactoryProcessor extends AbstractProcessor {
     @Override
     public Set<String> getSupportedAnnotationTypes() {
         return new LinkedHashSet<>(Arrays.asList(
-                GsonConstructor.class.getCanonicalName(),
-                GsonBuilder.class.getCanonicalName(),
+                GsonValue.class.getCanonicalName(),
                 GsonValueTypeAdapterFactory.class.getCanonicalName()
         ));
     }

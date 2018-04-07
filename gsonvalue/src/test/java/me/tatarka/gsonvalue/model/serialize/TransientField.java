@@ -1,12 +1,12 @@
 package me.tatarka.gsonvalue.model.serialize;
 
-import me.tatarka.gsonvalue.annotations.GsonConstructor;
+import me.tatarka.gsonvalue.annotations.GsonValue;
 
+@GsonValue
 public class TransientField {
     private final transient String dontSerialize = "really!";
     private final int arg;
 
-    @GsonConstructor
     public TransientField(int arg) {
         this.arg = arg;
     }

@@ -1,5 +1,6 @@
 package serialize
 
-import me.tatarka.gsonvalue.annotations.GsonConstructor
+import me.tatarka.gsonvalue.annotations.GsonValue
 
-data class IgnoreDataMethods @GsonConstructor constructor(val arg1: Int, val arg2: Int)
+@GsonValue
+data class IgnoreDataMethods constructor(val arg1: Int, val arg2: Int)

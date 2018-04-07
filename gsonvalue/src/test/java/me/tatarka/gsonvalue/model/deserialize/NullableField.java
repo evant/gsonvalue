@@ -1,11 +1,11 @@
 package me.tatarka.gsonvalue.model.deserialize;
 
-import me.tatarka.gsonvalue.annotations.GsonConstructor;
+import me.tatarka.gsonvalue.annotations.GsonValue;
 
+@GsonValue
 public class NullableField {
     public ConstructorArg arg;
 
-    @GsonConstructor
     public NullableField(ConstructorArg arg) {
         this.arg = arg;
     }

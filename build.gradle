@@ -15,7 +15,12 @@ allprojects {
     version '0.9-SNAPSHOT'
 
     repositories {
+        mavenLocal()
         mavenCentral()
+    }
+
+    tasks.withType(JavaCompile) {
+        options.incremental = true
     }
 }
 

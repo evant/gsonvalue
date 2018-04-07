@@ -1,11 +1,11 @@
 package me.tatarka.gsonvalue.model.serialize;
 
-import me.tatarka.gsonvalue.annotations.GsonConstructor;
+import me.tatarka.gsonvalue.annotations.GsonValue;
 
+@GsonValue
 public class IgnoreObjectMethods {
     private final int arg;
 
-    @GsonConstructor
     public IgnoreObjectMethods(int arg) {
         this.arg = arg;
     }

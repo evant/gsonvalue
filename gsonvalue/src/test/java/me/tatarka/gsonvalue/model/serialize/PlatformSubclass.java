@@ -1,13 +1,13 @@
 package me.tatarka.gsonvalue.model.serialize;
 
 import android.os.Parcelable;
-import me.tatarka.gsonvalue.annotations.GsonConstructor;
+import me.tatarka.gsonvalue.annotations.GsonValue;
 
+@GsonValue
 public class PlatformSubclass implements Parcelable {
 
     private final int arg;
 
-    @GsonConstructor
     public PlatformSubclass(int arg) {
         this.arg = arg;
     }

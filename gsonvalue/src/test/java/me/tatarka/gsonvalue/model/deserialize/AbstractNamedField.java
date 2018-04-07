@@ -2,11 +2,11 @@ package me.tatarka.gsonvalue.model.deserialize;
 
 import com.google.gson.annotations.SerializedName;
 
-import me.tatarka.gsonvalue.annotations.GsonConstructor;
+import me.tatarka.gsonvalue.annotations.GsonValue;
 
+@GsonValue
 public abstract class AbstractNamedField {
 
-    @GsonConstructor
     public static AbstractNamedField create(int arg) {
         return new Impl(arg);
     }

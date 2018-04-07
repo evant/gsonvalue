@@ -43,14 +43,8 @@ import javax.lang.model.util.SimpleTypeVisitor6;
 import javax.lang.model.util.Types;
 import javax.tools.Diagnostic;
 
-import me.tatarka.gsonvalue.annotations.GsonBuilder;
-import me.tatarka.gsonvalue.annotations.GsonConstructor;
-import me.tatarka.valueprocessor.ConstructionSource;
-import me.tatarka.valueprocessor.ElementException;
-import me.tatarka.valueprocessor.Properties;
-import me.tatarka.valueprocessor.Property;
-import me.tatarka.valueprocessor.Value;
-import me.tatarka.valueprocessor.ValueCreator;
+import me.tatarka.gsonvalue.annotations.GsonValue;
+import me.tatarka.valueprocessor.*;
 
 @SupportedSourceVersion(SourceVersion.RELEASE_7)
 public class GsonValueProcessor extends AbstractProcessor {
@@ -70,7 +64,7 @@ public class GsonValueProcessor extends AbstractProcessor {
         filer = processingEnv.getFiler();
         typeUtils = processingEnv.getTypeUtils();
         seen = new ArrayList<>();
-        valueCreator = new ValueCreator(processingEnv);
+        valueCreator = new ValueCreator(processingEnv, new Creator.AnnotationSelector(GsonValue.Creator.class));
     }
 
     @Override
@@ -78,9 +72,9 @@ public class GsonValueProcessor extends AbstractProcessor {
         for (TypeElement annotation : annotations) {
             Set<? extends Element> elements = roundEnv.getElementsAnnotatedWith(annotation);
             for (Element element : elements) {
-                if (element.getAnnotation(GsonConstructor.class) != null || element.getAnnotation(GsonBuilder.class) != null) {
+                if (element instanceof TypeElement && element.getAnnotation(GsonValue.class) != null) {
                     try {
-                        process(element, element.getAnnotation(GsonBuilder.class) != null);
+                        process((TypeElement) element);
                     } catch (IOException e) {
                         StringWriter stringWriter = new StringWriter();
                         e.printStackTrace(new PrintWriter(stringWriter));
@@ -92,10 +86,10 @@ public class GsonValueProcessor extends AbstractProcessor {
         return false;
     }
 
-    private void process(Element element, boolean isBuilder) throws IOException {
+    private void process(TypeElement element) throws IOException {
         try {
-            Value value = valueCreator.from(element, isBuilder);
-            ConstructionSource constructionSource = value.getConstructionSource();
+            Value value = valueCreator.from(element);
+            Creator creator = value.getCreator();
             Properties properties = value.getProperties();
 
             TypeElement classElement = value.getElement();
@@ -107,7 +101,7 @@ public class GsonValueProcessor extends AbstractProcessor {
                 seen.add(className);
             }
 
-            ClassName creatorName = ClassName.get((TypeElement) constructionSource.getConstructionElement().getEnclosingElement());
+            ClassName creatorName = ClassName.get((TypeElement) creator.getElement().getEnclosingElement());
             ClassName typeAdapterClassName = ClassName.get(className.packageName(), Prefix.PREFIX + StringUtils.join("_", className.simpleNames()));
             TypeName classType = TypeName.get(classElement.asType());
             List<TypeVariableName> typeVariables = new ArrayList<>();
@@ -133,7 +127,7 @@ public class GsonValueProcessor extends AbstractProcessor {
                         .build());
             }
 
-            // Test_TypeAdapter(Gson gson, TypeToken<Test> typeToken)
+            // Test_TypeAdapter(GsonValue gson, TypeToken<Test> typeToken)
             {
                 MethodSpec.Builder constructor = MethodSpec.constructorBuilder()
                         .addModifiers(Modifier.PUBLIC)
@@ -172,7 +166,7 @@ public class GsonValueProcessor extends AbstractProcessor {
                         .endControlFlow();
 
                 code.addStatement("out.beginObject()");
-                for (Property.Accessor<?> accessor: properties.getAccessors()) {
+                for (Property.Accessor<?> accessor : properties.getAccessors()) {
                     code.addStatement("out.name($S)", getSerializedName(accessor));
                     String writeStatement;
                     if (accessor instanceof Property.Field) {
@@ -230,24 +224,24 @@ public class GsonValueProcessor extends AbstractProcessor {
                             .addStatement("in.endObject()");
                 }
 
-                if (constructionSource instanceof ConstructionSource.Builder) {
+                if (creator instanceof Creator.Builder) {
                     String args = StringUtils.join(", ", properties.getConstructorParams(), TO_ARGS);
-                    if (constructionSource.isConstructor()) {
-                        code.add("return new $T($L)", ((ConstructionSource.Builder) constructionSource).getBuilderClass(), args);
+                    if (creator instanceof Creator.BuilderConstructor) {
+                        code.add("return new $T($L)", ((Creator.BuilderConstructor) creator).getBuilderClass(), args);
                     } else {
-                        code.add("return $T.$L($L)", creatorName, element.getSimpleName(), args);
+                        code.add("return $T.$L($L)", creatorName, creator.getElement().getSimpleName(), args);
                     }
                     code.add("\n").indent();
                     for (Property.BuilderParam param : properties.getBuilderParams()) {
                         code.add(".$L($L)\n", param.getCallableName(), Prefix.ARG_PREFIX + param.getName());
                     }
-                    code.add(".$L();\n", ((ConstructionSource.Builder) constructionSource).getBuildMethod().getSimpleName()).unindent();
+                    code.add(".$L();\n", ((Creator.Builder) creator).getBuildMethod().getSimpleName()).unindent();
                 } else {
                     String args = StringUtils.join(", ", params, TO_ARGS);
-                    if (constructionSource.isConstructor()) {
+                    if (creator instanceof Creator.Constructor) {
                         code.addStatement("return new $T($L)", classType, args);
                     } else {
-                        code.addStatement("return $T.$L($L)", creatorName, constructionSource.getConstructionElement().getSimpleName(), args);
+                        code.addStatement("return $T.$L($L)", creatorName, creator.getElement().getSimpleName(), args);
                     }
                 }
 
@@ -308,8 +302,7 @@ public class GsonValueProcessor extends AbstractProcessor {
     @Override
     public Set<String> getSupportedAnnotationTypes() {
         return new LinkedHashSet<>(Arrays.asList(
-                GsonConstructor.class.getCanonicalName(),
-                GsonBuilder.class.getCanonicalName()
+                GsonValue.class.getCanonicalName()
         ));
     }
 

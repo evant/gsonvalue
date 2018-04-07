@@ -1,9 +1,9 @@
 package me.tatarka.gsonvalue.model.deserialize;
 
-import me.tatarka.gsonvalue.annotations.GsonConstructor;
+import me.tatarka.gsonvalue.annotations.GsonValue;
 
+@GsonValue
 public class Empty {
-    @GsonConstructor
     public Empty() {
     }
 }

@@ -9,30 +9,20 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
-import org.junit.runners.Parameterized;
 
 import java.util.Arrays;
-import java.util.Collection;
 
 import static org.junit.Assert.assertEquals;
 
-@RunWith(Parameterized.class)
+@RunWith(JUnit4.class)
 public class GsonValueSerializeTest {
 
-    @Parameterized.Parameters(name = "{0}")
-    public static Collection<Object[]> params() {
-        return Arrays.asList(new Object[]{new ValueTypeAdapterFactory()}, new Object[]{MyTypeAdapterFactory.create()});
-    }
-
-    final TypeAdapterFactory factory;
+    TypeAdapterFactory factory;
     Gson gson;
-
-    public GsonValueSerializeTest(TypeAdapterFactory factory) {
-        this.factory = factory;
-    }
 
     @Before
     public void setup() {
+        factory = MyTypeAdapterFactory.create();
         gson = new GsonBuilder()
                 .serializeNulls()
                 .registerTypeAdapterFactory(factory)

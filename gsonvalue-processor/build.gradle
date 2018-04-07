@@ -1,7 +1,7 @@
 dependencies {
     compile project(':gsonvalue-annotations')
     compile 'com.squareup:javapoet:1.5.1'
-    compile 'me.tatarka.value:value-processor:0.2'
+    compile 'me.tatarka.value:value-processor:0.3'
 }
 
 apply from: '../publish.gradle'

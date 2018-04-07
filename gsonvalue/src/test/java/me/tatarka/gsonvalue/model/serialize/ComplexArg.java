@@ -1,13 +1,13 @@
 package me.tatarka.gsonvalue.model.serialize;
 
-import me.tatarka.gsonvalue.annotations.GsonConstructor;
+import me.tatarka.gsonvalue.annotations.GsonValue;
 
 import java.util.List;
 
+@GsonValue
 public class ComplexArg {
     final List<String> args;
 
-    @GsonConstructor
     public ComplexArg(List<String> args) {
         this.args = args;
     }

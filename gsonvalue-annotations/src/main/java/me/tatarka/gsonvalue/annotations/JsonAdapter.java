@@ -16,15 +16,13 @@
 
 package me.tatarka.gsonvalue.annotations;
 
-import com.google.gson.TypeAdapter;
-import com.google.gson.TypeAdapterFactory;
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 /**
- * An annotation that indicates the Gson {@link TypeAdapter} to use with a field or
+ * An annotation that indicates the GsonValue {@link TypeAdapter} to use with a field or
  * getter method.
  *
  * <p>Here is an example of how this annotation is used:</p>
@@ -78,7 +76,7 @@ import java.lang.annotation.Target;
  *
  * <p>The class referenced by this annotation must be either a {@link
  * TypeAdapter} or a {@link TypeAdapterFactory}. Using the factory interface
- * makes it possible to delegate to the enclosing {@code Gson} instance.
+ * makes it possible to delegate to the enclosing {@code GsonValue} instance.
  *
  * @since 2.3
  *

@@ -1,8 +1,8 @@
 package deserialize
 
-import me.tatarka.gsonvalue.annotations.GsonConstructor
+import me.tatarka.gsonvalue.annotations.GsonValue
 
-@GsonConstructor class OneArgConstructor(val arg: Int) {
+@GsonValue class OneArgConstructor(val arg: Int) {
     @Transient
     val calledConstructor = true
 }

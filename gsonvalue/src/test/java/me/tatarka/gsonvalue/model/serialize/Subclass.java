@@ -1,6 +1,6 @@
 package me.tatarka.gsonvalue.model.serialize;
 
-import me.tatarka.gsonvalue.annotations.GsonConstructor;
+import me.tatarka.gsonvalue.annotations.GsonValue;
 
 public class Subclass {
 
@@ -19,10 +19,10 @@ public class Subclass {
         }
     }
 
+    @GsonValue
     public static class Child extends Parent {
         public final int arg3;
 
-        @GsonConstructor
         public Child(int arg1, int arg2, int arg3) {
             super(arg1, arg2);
             this.arg3 = arg3;

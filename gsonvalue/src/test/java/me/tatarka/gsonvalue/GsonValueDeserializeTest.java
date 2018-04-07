@@ -10,6 +10,7 @@ import me.tatarka.gsonvalue.model.roundtrip.Subclass;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.junit.runners.JUnit4;
 import org.junit.runners.Parameterized;
 
 import java.util.Arrays;
@@ -17,23 +18,15 @@ import java.util.Collection;
 
 import static org.junit.Assert.*;
 
-@RunWith(Parameterized.class)
+@RunWith(JUnit4.class)
 public class GsonValueDeserializeTest {
 
-    @Parameterized.Parameters(name = "{0}")
-    public static Collection<Object[]> params() {
-        return Arrays.asList(new Object[]{new ValueTypeAdapterFactory()}, new Object[]{MyTypeAdapterFactory.create()});
-    }
-
-    final TypeAdapterFactory factory;
+    TypeAdapterFactory factory;
     Gson gson;
-
-    public GsonValueDeserializeTest(TypeAdapterFactory factory) {
-        this.factory = factory;
-    }
 
     @Before
     public void setup() {
+        factory = MyTypeAdapterFactory.create();
         gson = new GsonBuilder()
                 .registerTypeAdapterFactory(factory)
                 .create();
@@ -175,14 +168,5 @@ public class GsonValueDeserializeTest {
         assertNotNull(constructorArg);
         assertEquals(1, constructorArg.arg);
         assertTrue(constructorArg.constructorCalled);
-    }
-
-    @Test
-    public void deserializeStandaloneBuilder() {
-        StandaloneBuilder.Class builder = gson.fromJson("{\"arg\":1}", StandaloneBuilder.Class.class);
-
-        assertNotNull(builder);
-        assertEquals(1, builder.arg);
-        assertTrue(builder.builderCalled);
     }
 }

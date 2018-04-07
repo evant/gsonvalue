@@ -68,10 +68,10 @@ public class GsonValueTypeAdapterFactoryProcessorTest {
                         "}"), JavaFileObjects.forSourceString("test.Test",
                 "package test;\n" +
                         "\n" +
-                        "import me.tatarka.gsonvalue.annotations.GsonConstructor;\n" +
+                        "import me.tatarka.gsonvalue.annotations.GsonValue;\n" +
                         "\n" +
+                        "@GsonValue\n" +
                         "public class Test {\n" +
-                        "    @GsonConstructor\n" +
                         "    public Test() {\n" +
                         "    }\n" +
                         "}")))

@@ -22,27 +22,28 @@ You may want to use a gradle plugin for easier management of apt dependencies. F
 [gradle-apt-plugin](https://github.com/tbroyer/gradle-apt-plugin).
 
 ```groovy
-apt 'me.tatarka.gsonvalue:gsonvalue-processor:0.8'
-compile 'me.tatarka.gsonvalue:gsonvalue:0.8'
+apt 'me.tatarka.gsonvalue:gsonvalue-processor:0.9'
+compileOnly 'me.tatarka.gsonvalue:gsonvalue-annotations:0.9'
 ```
 
 #### Android
 ```groovy
-annotationProcessor 'me.tatarka.gsonvalue:gsonvalue-processor:0.8'
-compile 'me.tatarka.gsonvalue:gsonvalue:0.8'
+annotationProcessor 'me.tatarka.gsonvalue:gsonvalue-processor:0.9'
+compileOnly 'me.tatarka.gsonvalue:gsonvalue-annotations:0.9'
 ```
 
 ### Maven
 ```xml
 <dependency>
   <groupId>me.tatarka.gsonvalue</groupId>
-  <artifactId>gsonvalue</artifactId>
-  <version>0.8</version>
+  <artifactId>gsonvalue-annotations</artifactId>
+  <version>0.9</version>
+  <scope>provided</scope>
 </dependency>
 <dependency>
   <groupId>me.tatarka.gsonvalue</groupId>
   <artifactId>gsonvalue-processor</artifactId>
-  <version>0.8</version>
+  <version>0.9</version>
   <scope>provided</scope>
 </dependency>
 ```
@@ -59,7 +60,7 @@ the json
 
 #### POJO
 ```java
-import me.tatarka.gsonvalue.annotations.GsonConstructor;
+import me.tatarka.gsonvalue.annotations.GsonValue;
 
 public class Foo {
     @GsonConstructor
@@ -112,7 +113,7 @@ Alternatively, you can create a builder class. Annotate either the builder's con
 
 #### POJO
 ```java
-import me.tatarka.gsonvalue.annotations.GsonConstructor;
+import me.tatarka.gsonvalue.annotations.GsonValue;
 
 public class Foo {
     public static class Builder {
@@ -179,7 +180,7 @@ public abstract class MyTypeAdapterFactory implements TypeAdapterFactory {
 
 Then register it to your gson builder.
 ```java
-gson = new GsonBuilder()
+gson = new GsonBuilder
         .registerTypeAdapterFactory(MyTypeAdapterFactory.create())
         .create();
 ```

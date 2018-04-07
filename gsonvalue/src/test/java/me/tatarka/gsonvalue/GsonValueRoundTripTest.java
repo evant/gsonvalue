@@ -16,23 +16,15 @@ import java.util.Collection;
 
 import static org.junit.Assert.assertEquals;
 
-@RunWith(Parameterized.class)
+@RunWith(JUnit4.class)
 public class GsonValueRoundTripTest {
 
-    @Parameterized.Parameters(name = "{0}")
-    public static Collection<Object[]> params() {
-        return Arrays.asList(new Object[]{new ValueTypeAdapterFactory()}, new Object[]{MyTypeAdapterFactory.create()});
-    }
-
-    final TypeAdapterFactory factory;
+    TypeAdapterFactory factory;
     Gson gson;
-
-    public GsonValueRoundTripTest(TypeAdapterFactory factory) {
-        this.factory = factory;
-    }
 
     @Before
     public void setup() {
+        factory = MyTypeAdapterFactory.create();
         gson = new GsonBuilder()
                 .registerTypeAdapterFactory(factory)
                 .create();

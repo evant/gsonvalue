@@ -1,12 +1,12 @@
 package me.tatarka.gsonvalue.model.deserialize;
 
-import me.tatarka.gsonvalue.annotations.GsonConstructor;
+import me.tatarka.gsonvalue.annotations.GsonValue;
 
+@GsonValue
 public class MethodArg {
     public transient boolean factoryMethodCalled;
     public int arg;
 
-    @GsonConstructor
     public static MethodArg create(int arg) {
         MethodArg methodArg = new MethodArg();
         methodArg.factoryMethodCalled = true;

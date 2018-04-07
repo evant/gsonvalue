@@ -1,6 +1,6 @@
 package me.tatarka.gsonvalue.model.roundtrip;
 
-import me.tatarka.gsonvalue.annotations.GsonConstructor;
+import me.tatarka.gsonvalue.annotations.GsonValue;
 
 public class Subclass {
 
@@ -16,10 +16,10 @@ public class Subclass {
         }
     }
 
+    @GsonValue
     public static class Child extends Parent {
         private final String bar;
 
-        @GsonConstructor
         public Child(String foo, String bar) {
             super(foo);
             this.bar = bar;

@@ -1,5 +1,5 @@
 package deserialize
 
-import me.tatarka.gsonvalue.annotations.GsonConstructor
+import me.tatarka.gsonvalue.annotations.GsonValue
 
-@GsonConstructor class Empty
+@GsonValue class Empty

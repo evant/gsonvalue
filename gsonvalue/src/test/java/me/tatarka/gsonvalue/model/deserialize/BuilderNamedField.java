@@ -1,10 +1,10 @@
 package me.tatarka.gsonvalue.model.deserialize;
 
 import com.google.gson.annotations.SerializedName;
-import me.tatarka.gsonvalue.annotations.GsonBuilder;
+import me.tatarka.gsonvalue.annotations.GsonValue;
 
+@GsonValue
 public class BuilderNamedField {
-    @GsonBuilder
     public static Builder builder() {
         return new Builder();
     }

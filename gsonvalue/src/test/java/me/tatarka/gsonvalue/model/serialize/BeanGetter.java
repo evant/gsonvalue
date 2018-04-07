@@ -1,11 +1,11 @@
 package me.tatarka.gsonvalue.model.serialize;
 
-import me.tatarka.gsonvalue.annotations.GsonConstructor;
+import me.tatarka.gsonvalue.annotations.GsonValue;
 
+@GsonValue
 public class BeanGetter {
     private final int arg;
 
-    @GsonConstructor
     public BeanGetter(int arg) {
         this.arg = arg;
     }
