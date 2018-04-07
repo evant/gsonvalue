@@ -133,4 +133,12 @@ public class GsonValueSerializeTest {
 
         assertEquals("{\"arg\":1}", json);
     }
+
+    @Test
+    public void serializePlatformSubclass() {
+        PlatformSubclass subclass = new PlatformSubclass(1);
+        String json = gson.toJson(subclass);
+
+        assertEquals("{\"arg\":1}", json);
+    }
 }

@@ -6,10 +6,10 @@ import com.google.gson.TypeAdapterFactory;
 import com.google.gson.reflect.TypeToken;
 import me.tatarka.gsonvalue.model.adapterfactory.MyTypeAdapterFactory;
 import me.tatarka.gsonvalue.model.deserialize.*;
+import me.tatarka.gsonvalue.model.roundtrip.Subclass;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.junit.runners.JUnit4;
 import org.junit.runners.Parameterized;
 
 import java.util.Arrays;
